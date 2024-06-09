@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SchächnerSearch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <style>
+        .result-container {
+            width: 100%;
+            margin: auto;
+        }
+        .url {
+            font-size: smaller; /* Adjust font size here */
+        }
+        .dropdown-toggle::after {
+            content: none !important; /* Remove the arrow */
+        }
+        .transparent-search {
+            opacity: 0.8; /* Anpassen des Opazitätswerts nach Bedarf */
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-{{ background_color }} fixed-top ">
+        <div class="container">
+            <a class="navbar-brand" href="#"><b>SchächnerSearch</b></a>
+            <form class="d-flex w-100" method="POST" action="/">
+                <input class="form-control me-2 flex-grow-1 transparent-search" type="search" placeholder="Search" aria-label="Search" name="query" value="{{ request.args.get('query', '') }}">
+
+                <button class="btn btn-outline-light" type="submit">Search</button>
+
+            </form>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+    <div class="modal fade" id="welcomeModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="staticBackdropLabel">SchächnerSearch</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                This is a small search engine for testing purposes with crawled URLs.
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" id="openTutorialModalButton">Tutorial</button>
+            </div>
+          </div>
+        </div>
+      </div>    
+      <div class="modal fade" id="Tutorial" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="staticBackdropLabel">SchächnerSearch</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-4">
+                      <div class="list-group" id="list-tab" role="tablist">
+                        <a class="list-group-item list-group-item-action active" id="list-home-list" data-bs-toggle="list" href="#list-home" role="tab" aria-controls="list-home">Home</a>
+                        <a class="list-group-item list-group-item-action" id="list-search-list" data-bs-toggle="list" href="#list-search" role="tab" aria-controls="list-search">Search</a>
+                        <a class="list-group-item list-group-item-action" id="list-like-list" data-bs-toggle="list" href="#list-like" role="tab" aria-controls="list-like">Like</a>
+                    </div>
+                    </div>
+                    <div class="col-8">
+                      <div class="tab-content" id="nav-tabContent">
+                        <div class="tab-pane fade show active" id="list-home" role="tabpanel" aria-labelledby="list-home-list"><h3>Hello!</h3></div>
+                        <div class="tab-pane fade" id="list-search" role="tabpanel" aria-labelledby="list-search-list"><h3>Search</h3>Using the search function you can search for different pages that have already been crawled by this search engine.</div>
+                        <div class="tab-pane fade" id="list-like" role="tabpanel" aria-labelledby="list-like-list"><h3>Like</h3>Using the like function, you can like articles so that they are listed higher up. A maximum of one article can be liked per minute.</div>
+                    </div>
+                    </div>
+                  </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    <div class="empty-placeholder" style="height: 80px;"></div> <!-- Platzhalter für die feste Navbar -->
+
+    <div class="container">
+        <h1 class="mt-5">SchächnerSearch</h1>
+        <p class="lead">Search the web with SchächnerSearch</p>
+        
+        {% if message %}
+        <div class="alert alert-warning">
+            {{ message }}
+        </div>
+        {% endif %}
+        <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+            <div id="search-time-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#007bff" class="bi bi-search me-2" viewBox="0 0 16 16">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                    </svg>
+                    <strong class="me-auto">Search Duration</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Query executed in {{ query_time | round(3) }} seconds.
+                </div>
+            </div>
+            <div id="success-like-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill me-2" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314"/>
+                    </svg>
+                    <strong class="me-auto">Success</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Link successfully liked!
+                </div>
+            </div>
+            <div id="like-error" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-exclamation-triangle-fill me-2" viewBox="0 0 16 16">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                    </svg>
+                    <strong class="me-auto">Error</strong>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    You can only like once per minute.
+                </div>
+            </div>
+            
+            <!-- Add more toasts here as needed -->
+        </div>
+        
+
+        <div class="result-container">
+            {% if results %}
+            <br>
+            <ul class="list-group">
+                {% for result in results %}
+                <li class="list-group-item">
+                    {% if result.title %}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ result.url }}" target="_blank">{{ result.title }}</a>
+                        <div class="dropdown">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ loop.index }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                Actions
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ loop.index }}">
+                                <li><a class="dropdown-item" href="#">Open</a></li>
+                                <li><a class="dropdown-item" href="#">Bookmark</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="likeResult('{{ result.url }}')">Like</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% elif result.url %}
+                    <a href="{{ result.url }}" target="_blank"><em>No title available</em></a>
+                    {% else %}
+                    <em>No title or URL available</em></a>
+                    {% endif %}
+                    <p class="url">{{ result.url }}</p>
+                    {% if result.description %}
+                    <p class="mt-2">{{ result.description }}</p>
+                    {% else %}
+                    <p class="mt-2"><em>No description available</em></p>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Pagination links -->
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center mt-4">
+                    {% set last_page = (total_results // per_page) + 1 %}
+                    {% set delta = 2 %}
+                    {% set range_pages = range(1, last_page + 1) %}
+                    {% set pages = [] %}
+                    
+                    {% if page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('search', query=query, page=page-1) }}">Previous</a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for p in range_pages %}
+                        {% if p == 1 or p == last_page or (page - delta <= p <= page + delta) %}
+                            {% if pages and p != pages[-1] + 1 %}
+                                <li class="page-item disabled"><a class="page-link">...</a></li>
+                            {% endif %}
+                            <li class="page-item {% if p == page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('search', query=query, page=p) }}">{{ p }}</a>
+                            </li>
+                            {% set pages = pages + [p] %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page < last_page %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('search', query=query, page=page+1) }}">Next</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            {% else %}
+            <div class="alert alert-primary" role="alert">Please enter a search term.</div>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+    var toastEl = document.getElementById('search-time-toast');
+    var toast = new bootstrap.Toast(toastEl);
+    toast.show();
+
+    function likeResult(url) {
+        fetch('/like', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 'url': url }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var successToast = new bootstrap.Toast(document.getElementById('success-like-toast'));
+                successToast.show();
+            } else {
+                var errorToast = new bootstrap.Toast(document.getElementById('like-error'));
+                errorToast.show();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Ein Fehler ist aufgetreten.');
+        });
+    }
+    const welcomeModalShown = document.cookie.includes('welcome_modal_shown=true');
+
+// Wenn das Cookie nicht existiert, zeige das Welcome-Modal
+if (!welcomeModalShown) {
+    const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
+    welcomeModal.show();
+
+    // Setze das Cookie, um anzuzeigen, dass das Welcome-Modal angezeigt wurde
+    document.cookie = 'welcome_modal_shown=true;max-age=86400'; // Cookie läuft nach 24 Stunden ab
+}
+
+const openTutorialModalButton = document.getElementById('openTutorialModalButton');
+openTutorialModalButton.addEventListener('click', function() {
+    // Schließe das Welcome-Modal, bevor das Tutorial-Modal geöffnet wird
+    const welcomeModal = bootstrap.Modal.getInstance(document.getElementById('welcomeModal'));
+    welcomeModal.hide();
+
+    // Öffne das Tutorial-Modal
+    const tutorialModal = new bootstrap.Modal(document.getElementById('Tutorial'));
+    tutorialModal.show();
+});
+document.addEventListener("DOMContentLoaded", function() {
+    // Array mit vordefinierten hellen Farben
+    const lightColors = ["primary", "success", "info"];
+
+    // Funktion zur Überprüfung, ob eine Farbe dunkel ist
+    function isDark(color) {
+        // Hier kannst du die Bedingung anpassen, um zu bestimmen, ob eine Farbe dunkel ist
+        // Diese Bedingung basiert auf der Helligkeit des Farbwerts
+        // Zum Beispiel: Wenn der Farbwert kleiner als 128 ist, gilt er als dunkel
+        return color < 128;
+    }
+
+    // Zufällige Farbe auswählen
+    const randomColor = lightColors[Math.floor(Math.random() * lightColors.length)];
+
+    // Überprüfen, ob die ausgewählte Farbe dunkel ist
+    if (isDark(randomColor)) {
+        // Wenn die Farbe dunkel ist, wähle eine andere Farbe aus dem Array
+        // Beachte, dass hier keine vollständige Überprüfung auf Dunkelheit erfolgt, sondern nur eine einfache Bedingung verwendet wird
+        // Du kannst die isDark-Funktion an deine Bedürfnisse anpassen
+        const updatedColors = lightColors.filter(color => color !== randomColor);
+        randomColor = updatedColors[Math.floor(Math.random() * updatedColors.length)];
+    }
+
+    // Hintergrundfarbe der Navbar aktualisieren
+    const navbar = document.querySelector('.navbar');
+    navbar.classList.add(`bg-${randomColor}`);
+});
+
+
+    </script>
+</body>
+</html>
