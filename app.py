@@ -50,25 +50,55 @@ def search():
                 """, (per_page, (page - 1) * per_page))
             elif query:
                 search_query = f"%{query}%"
+                words = query.split()
+                regex_pattern = ".*" + ".*".join(words) + ".*"
                 cursor.execute("""
                     SELECT COUNT(*) FROM meta_data
-                    WHERE title LIKE %s OR url LIKE %s
-                """, (search_query, search_query))
+                    WHERE title REGEXP %s OR url REGEXP %s
+                """, (regex_pattern, regex_pattern))
                 total_results = cursor.fetchone()['COUNT(*)']
+
+                if total_results == 0:
+                    total_results = 0
+                    all_results = []
+                    for word in words:
+                        word_pattern = f"%{word}%"
+                        cursor.execute("""
+                            SELECT url, title, description, likes
+                            FROM meta_data
+                            WHERE title LIKE %s OR url LIKE %s
+                            ORDER BY likes DESC
+                            LIMIT %s OFFSET %s
+                        """, (word_pattern, word_pattern, per_page, (page - 1) * per_page))
+                        results = cursor.fetchall()
+                        all_results.extend(results)
+                    results = all_results
+                    total_results = len(results)
+                else:
+                    cursor.execute("""
+                        SELECT url, title, description, likes
+                        FROM meta_data
+                        WHERE title REGEXP %s OR url REGEXP %s
+                        ORDER BY likes DESC
+                        LIMIT %s OFFSET %s
+                    """, (regex_pattern, regex_pattern, per_page, (page - 1) * per_page))
+                    results = cursor.fetchall()
+            else:
+                # Fetch the last 10 crawled pages when no search term is entered
                 cursor.execute("""
-                    SELECT url, title, description, likes
+                    SELECT url, title, description
                     FROM meta_data
-                    WHERE title LIKE %s OR url LIKE %s
-                    ORDER BY likes DESC
-                    LIMIT %s OFFSET %s
-                """, (search_query, search_query, per_page, (page - 1) * per_page))
-            results = cursor.fetchall()
+                    ORDER BY id DESC
+                    LIMIT 10
+                """)
+                results = cursor.fetchall()
             cursor.close()
             connection.close()
     except Error as e:
         print(f'Error: {e}')
     query_time = time.time() - start_time
     return render_template('search.html', results=results, query_time=query_time, message=message, total_results=total_results, page=page, per_page=per_page, query=query)
+
 
 @app.route('/like', methods=['POST'])
 def like():
@@ -98,6 +128,7 @@ def like():
                 print(f'Error: {e}')
                 return jsonify({'success': False, 'message': 'Error liking the link'}), 500
     return jsonify({'success': False, 'message': 'Invalid request'}), 400
+
 
 if __name__ == '__main__':
     app.run(debug=True)
