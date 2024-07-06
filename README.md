@@ -4,10 +4,10 @@ The matching search engine to my [web crawler](https://github.com/SchBenedikt/we
 ## Features
 - Like Projects (The most liked pages are displayed at the top)
 - Display of the search speed.
+- Ask AI for help.
 
 </br>
 
-![image](https://github.com/SchBenedikt/search-engine/assets/137323528/f4b65bb6-433c-464d-8536-9a520cc0d0e3)
-![image](https://github.com/SchBenedikt/search-engine/assets/137323528/f169525a-8ffd-4d0d-99d1-18b2ebccc4d6)
-![image](https://github.com/SchBenedikt/search-engine/assets/137323528/7a8bb1b2-e000-404b-9e69-def1e7c35fa0)
+![grafik](https://github.com/SchBenedikt/search-engine/assets/137323528/a5ebed75-59f3-42ce-b7f2-6b1912e41ff0)
+![grafik](https://github.com/SchBenedikt/search-engine/assets/137323528/746f6c12-8386-4df0-9286-8b63454c1bdc)
 
