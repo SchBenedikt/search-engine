@@ -220,58 +220,57 @@
             <!-- Add more toasts here as needed -->
         </div>
         
-
         <div class="result-container">
             {% if query %}
-            <div id="ai-response" class="mt-4">
-                <!-- Hier kommt der Inhalt rein, der abhängig von 'query' gerendert wird -->
-              </div>
-            {% endif %}
-            {% if query %}
-            <br>
-            <ul class="list-group">
-                {% if results %}
-                    {% for result in results %}
-                    <li class="list-group-item">
-                        <div class="d-flex justify-content-between align-items-center">
-                            {% if result.image and not loop.first %}
-                                <img src="{{ result.image }}" alt="Image for {{ result.title or 'No title available' }}" class="img-thumbnail me-3 d-none d-md-block" style="width: 150px; height: auto;">
-                            {% endif %}
-                            <div class="flex-grow-1 ms-3">
-                                {% if result.title %}
-                                    <a href="{{ result.url }}" target="_blank">{{ result.title }}</a>
-                                {% elif result.url %}
-                                    <a href="{{ result.url }}" target="_blank"><em>No title available</em></a>
-                                {% else %}
-                                    <em>No title or URL available</em>
-                                {% endif %}
-                                <p class="url">{{ result.url }}</p>
-                                {% if result.description %}
-                                    <p class="mt-2">{{ result.description }}</p>
-                                {% else %}
-                                    <p class="mt-2"><em>No description available</em></p>
-                                {% endif %}
-                            </div>
-                            <div class="dropdown ms-3 d-none d-md-block">
-                                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ loop.index }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Actions
-                                </button>
-                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ loop.index }}">
-                                    <li><a class="dropdown-item" href="#">Open</a></li>
-                                    <li><a class="dropdown-item" href="#">Bookmark</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="likeResult('{{ result.url }}')">Like</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </li>
-                    
-                    {% endfor %}
-                {% else %}
-                <div class="alert alert-info" role="alert">
-                    No results found for your search query. Please try different keywords.
+                <div id="ai-response" class="mt-4">
+                    <!-- Hier kommt der Inhalt rein, der abhängig von 'query' gerendert wird -->
                 </div>
+            {% endif %}
             
-                <!-- Google Search Link -->
+            {% if query %}
+                <br>
+                <ul class="list-group">
+                    {% if results %}
+                        {% for result in results %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    {% if result[4] and not loop.first %}  <!-- result[4] ist das Bild -->
+                                        <img src="{{ result[4] }}" alt="Image for {{ result[1] or 'No title available' }}" class="img-thumbnail me-3 d-none d-md-block" style="width: 150px; height: auto;">
+                                    {% endif %}
+                                    <div class="flex-grow-1 ms-3">
+                                        {% if result[1] %}  <!-- result[1] ist der Titel -->
+                                            <a href="{{ result[0] }}" target="_blank">{{ result[1] }}</a>  <!-- result[0] ist die URL -->
+                                        {% else %}
+                                            <a href="{{ result[0] }}" target="_blank"><em>No title available</em></a>
+                                        {% endif %}
+                                        <p class="url">{{ result[0] }}</p>  <!-- result[0] ist die URL -->
+                                        {% if result[2] %}  <!-- result[2] ist die Beschreibung -->
+                                            <p class="mt-2">{{ result[2] }}</p>
+                                        {% else %}
+                                            <p class="mt-2"><em>No description available</em></p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="dropdown ms-3 d-none d-md-block">
+                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ loop.index }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Actions
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ loop.index }}">
+                                            <li><a class="dropdown-item" href="{{ result[0] }}" target="_blank">Open</a></li>
+                                            <li><a class="dropdown-item" href="#">Bookmark</a></li>
+                                            <li><a class="dropdown-item" href="#" onclick="likeResult('{{ result[0] }}')">Like</a></li>  <!-- result[0] für die URL -->
+                                        </ul>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info" role="alert">
+                            No results found for your search query. Please try different keywords.
+                        </div>
+                    {% endif %}
+                </ul>
+                
+                <!-- Google Search Links -->
                 <h3>Search results from:</h3>
                 <ul>
                     <li><a href="https://www.google.com/search?q={{ query }}" target="_blank">Google</a></li>
@@ -280,10 +279,10 @@
                     <li><a href="https://www.ecosia.org/search?q={{ query }}" target="_blank">Ecosia</a></li>
                     <li><a href="https://www.perplexity.ai/search?q={{ query }}" target="_blank">Perplexity</a></li>
                 </ul>
+            
             </div>
-    
-                {% endif %}
-            </ul>
+        
+
             
             <!-- Pagination links -->
             <nav aria-label="Page navigation example">
