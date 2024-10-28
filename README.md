@@ -1,6 +1,7 @@
 # search-engine
 The matching search engine to my [web crawler](https://github.com/SchBenedikt/web-crawler).
 
+The Docker image is currently not being developed further.
 https://hub.docker.com/r/schbenedikt/schaechnersearch
 
 ## Features
