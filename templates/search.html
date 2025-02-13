@@ -451,16 +451,16 @@
                                 return response.json();
                             })
                             .then(data => {
-                                const fullResponse = data[0]?.response?.response || 'No response found';
+                                // Update: Handle both new (object) and legacy (array) responses
+                                const fullResponse = (data.response && data.response.response) || (Array.isArray(data) && data[0]?.response?.response) || 'No response found';
                                 const shortResponse = truncateText(fullResponse, 50);
-        
                                 document.getElementById('ai-response').innerHTML = `
                                     <div class="alert alert-info" role="alert">
                                         <span id="short-response">${marked.parse(shortResponse)}</span>
                                         <br><br>
                                         <button class="btn btn-primary" onclick="showFullResponseModal()">Show Full Response</button>
                                     </div>`;
-        
+                                
                                 window.showFullResponseModal = function() {
                                     const modalBody = document.getElementById('full-response-modal-body');
                                     modalBody.innerHTML = marked.parse(fullResponse);
