@@ -34,7 +34,7 @@ def search():
     start_time = time.time()
     try:
         db = get_db_connection()
-        if db:
+        if db is not None:
             collection = db['meta_data']
             if query == "#all":
                 results = list(collection.find(
@@ -65,7 +65,7 @@ def suggest():
         query = data['query'].strip()
         
         db = get_db_connection()
-        if db:
+        if db is not None:
             collection = db['meta_data']
             suggestions = list(collection.find(
                 {"title": {"$regex": query, "$options": "i"}},
@@ -91,7 +91,7 @@ def like():
                 like_times[url] = current_time
                 
                 db = get_db_connection()
-                if db:
+                if db is not None:
                     collection = db['meta_data']
                     collection.update_one({"url": url}, {"$inc": {"likes": 1}})
                 
@@ -107,7 +107,7 @@ def autocomplete():
     if term:
         try:
             db = get_db_connection()
-            if db:
+            if db is not None:
                 collection = db['meta_data']
                 results = list(collection.find(
                     {"title": {"$regex": term, "$options": "i"}},
@@ -124,7 +124,7 @@ def check_single_result():
     if term:
         try:
             db = get_db_connection()
-            if db:
+            if db is not None:
                 collection = db['meta_data']
                 count = collection.count_documents({"title": term})
                 if count == 1:
