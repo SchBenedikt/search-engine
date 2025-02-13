@@ -29,7 +29,13 @@ def get_db_connection():
 # Funktion zur Vorverarbeitung der Suchanfrage
 def preprocess_query(query):
     words = nltk.word_tokenize(query)
-    processed_words = [stemmer.stem(word) for word in words if word.lower() not in stop_words]
+    if not words:
+        return ''
+    if len(words) > 1:
+        processed_words = [stemmer.stem(word) for word in words[:-1] if word.lower() not in stop_words]
+        processed_words.append(words[-1])  # Add the last word without stemming
+    else:
+        processed_words = [words[0]] if words[0].lower() not in stop_words else []
     return ' '.join(processed_words)
 
 @app.route('/', methods=['GET', 'POST'])
