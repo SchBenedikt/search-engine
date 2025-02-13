@@ -1,11 +1,19 @@
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 from pymongo import MongoClient, TEXT
 import time
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 
 app = Flask(__name__)
 
 # Dictionary, um die Zeit zu speichern, zu der ein Like für eine bestimmte URL vergeben wurde
 like_times = {}
+
+# Lade die Stop-Wörter für Englisch und Deutsch
+nltk.download('stopwords')
+stop_words = set(stopwords.words('english')).union(set(stopwords.words('german')))
+stemmer = PorterStemmer()
 
 def get_db_connection():
     try:
@@ -18,6 +26,12 @@ def get_db_connection():
         print(f'Error: {e}')
         return None
 
+# Funktion zur Vorverarbeitung der Suchanfrage
+def preprocess_query(query):
+    words = nltk.word_tokenize(query)
+    processed_words = [stemmer.stem(word) for word in words if word.lower() not in stop_words]
+    return ' '.join(processed_words)
+
 @app.route('/', methods=['GET', 'POST'])
 def search():
     results = []
@@ -29,9 +43,11 @@ def search():
 
     if request.method == 'POST':
         query = request.form['query'].strip()
+        query = preprocess_query(query)  # Preprocess the query
         return redirect(url_for('search', query=query, page=1))
     else:
         query = request.args.get('query', '').strip()
+        query = preprocess_query(query)  # Preprocess the query
 
     start_time = time.time()
     try:
