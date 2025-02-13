@@ -8,6 +8,7 @@ https://hub.docker.com/r/schbenedikt/schaechnersearch
 - Like Projects (The most liked pages are displayed at the top)
 - Display of the search speed.
 - Ask AI for help.
+- Uses MongoDB for database operations.
 
 </br>
 

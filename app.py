@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template, jsonify, redirect, url_for
-import psycopg2
-from psycopg2 import sql, Error
+from pymongo import MongoClient
 import time
 
 app = Flask(__name__)
@@ -10,14 +9,10 @@ like_times = {}
 
 def get_db_connection():
     try:
-        connection = psycopg2.connect(
-            host='localhost',
-            database='search_engine',
-            user='postgres',
-            password='admin'
-        )
-        return connection
-    except Error as e:
+        client = MongoClient('mongodb://localhost:27017/')
+        db = client['search_engine']
+        return db
+    except Exception as e:
         print(f'Error: {e}')
         return None
 
@@ -38,49 +33,26 @@ def search():
 
     start_time = time.time()
     try:
-        with get_db_connection() as connection:
-            with connection.cursor() as cursor:
-                if query == "#all":
-                    cursor.execute(sql.SQL("""
-                        SELECT url, title, description, likes, image
-                        FROM meta_data
-                        WHERE title ILIKE %s OR url ILIKE %s
-                        ORDER BY likes DESC
-                        LIMIT %s OFFSET %s
-                    """), (search_query, search_query, per_page, (page - 1) * per_page))
-                    results = cursor.fetchall()
+        db = get_db_connection()
+        if db:
+            collection = db['meta_data']
+            if query == "#all":
+                results = list(collection.find(
+                    {"$or": [{"title": {"$regex": query, "$options": "i"}}, {"url": {"$regex": query, "$options": "i"}}]}
+                ).sort("likes", -1).skip((page - 1) * per_page).limit(per_page))
 
-                elif query:
-                    # Verwende LIKE zur Suche nach Titel oder URL
-                    search_query = f"%{query}%"
-                    cursor.execute(sql.SQL("""
-                        SELECT COUNT(*) FROM meta_data
-                        WHERE title ILIKE %s OR url ILIKE %s
-                    """), (search_query, search_query))
-                    total_results = cursor.fetchone()[0]
+            elif query:
+                search_query = {"$or": [{"title": {"$regex": query, "$options": "i"}}, {"url": {"$regex": query, "$options": "i"}}]}
+                total_results = collection.count_documents(search_query)
 
-                    if total_results > 0:
-                        cursor.execute(sql.SQL("""
-                            SELECT url, title, description, likes, image
-                            FROM meta_data
-                            WHERE title ILIKE %s OR url ILIKE %s
-                            ORDER BY likes DESC
-                            LIMIT %s OFFSET %s
-                        """), (search_query, search_query, per_page, (page - 1) * per_page))
-                        results = cursor.fetchall()
-                    else:
-                        message = "No results found."
+                if total_results > 0:
+                    results = list(collection.find(search_query).sort("likes", -1).skip((page - 1) * per_page).limit(per_page))
                 else:
-                    # Fetch 10 random crawled pages when no search term is entered
-                    cursor.execute(sql.SQL("""
-                        SELECT url, title, description, image
-                        FROM meta_data
-                        ORDER BY RANDOM()
-                        LIMIT 10
-                    """))
-                    results = cursor.fetchall()
+                    message = "No results found."
+            else:
+                results = list(collection.aggregate([{"$sample": {"size": 10}}]))
 
-    except Error as e:
+    except Exception as e:
         print(f'Error: {e}')
 
     query_time = time.time() - start_time
@@ -92,20 +64,17 @@ def suggest():
         data = request.get_json()
         query = data['query'].strip()
         
-        with get_db_connection() as connection:
-            with connection.cursor() as cursor:
-                cursor.execute(sql.SQL("""
-                    SELECT url, title
-                    FROM meta_data
-                    WHERE title ILIKE %s
-                    LIMIT 5
-                """), ('%' + query + '%',))
-                
-                suggestions = cursor.fetchall()
+        db = get_db_connection()
+        if db:
+            collection = db['meta_data']
+            suggestions = list(collection.find(
+                {"title": {"$regex": query, "$options": "i"}},
+                {"url": 1, "title": 1}
+            ).limit(5))
         
         return jsonify({'suggestions': suggestions})
     
-    except Error as e:
+    except Exception as e:
         print(f'Error: {e}')
         return jsonify({'suggestions': []})
 
@@ -117,22 +86,17 @@ def like():
         current_time = time.time()
         if url:
             try:
-                # Überprüfen, ob ein Like für diese URL innerhalb der letzten Minute vergeben wurde
                 if url in like_times and current_time - like_times[url] < 60:
                     return jsonify({'success': False, 'message': 'You can only like once per minute.'}), 400
-                like_times[url] = current_time  # Speichern der aktuellen Zeit für die URL
+                like_times[url] = current_time
                 
-                with get_db_connection() as connection:
-                    with connection.cursor() as cursor:
-                        cursor.execute(sql.SQL("""
-                            UPDATE meta_data
-                            SET likes = likes + 1
-                            WHERE url = %s
-                        """), (url,))
-                        connection.commit()
+                db = get_db_connection()
+                if db:
+                    collection = db['meta_data']
+                    collection.update_one({"url": url}, {"$inc": {"likes": 1}})
                 
                 return jsonify({'success': True, 'message': 'Liked successfully'}), 200
-            except Error as e:
+            except Exception as e:
                 print(f'Error: {e}')
                 return jsonify({'success': False, 'message': 'Error liking the link'}), 500
     return jsonify({'success': False, 'message': 'Invalid request'}), 400
@@ -142,17 +106,15 @@ def autocomplete():
     term = request.args.get('term')
     if term:
         try:
-            with get_db_connection() as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(sql.SQL("""
-                        SELECT DISTINCT title
-                        FROM meta_data
-                        WHERE title ILIKE %s
-                        LIMIT 10
-                    """), (f"%{term}%",))
-                    results = [row[0] for row in cursor.fetchall()]
-                    return jsonify(results)
-        except Error as e:
+            db = get_db_connection()
+            if db:
+                collection = db['meta_data']
+                results = list(collection.find(
+                    {"title": {"$regex": term, "$options": "i"}},
+                    {"title": 1}
+                ).limit(10))
+                return jsonify([result['title'] for result in results])
+        except Exception as e:
             print(f'Error: {e}')
     return jsonify([])
 
@@ -161,23 +123,16 @@ def check_single_result():
     term = request.args.get('term')
     if term:
         try:
-            with get_db_connection() as connection:
-                with connection.cursor() as cursor:
-                    cursor.execute(sql.SQL("""
-                        SELECT COUNT(*) FROM meta_data
-                        WHERE title = %s
-                    """), (term,))
-                    count = cursor.fetchone()[0]
-                    if count == 1:
-                        cursor.execute(sql.SQL("""
-                            SELECT url FROM meta_data
-                            WHERE title = %s
-                        """), (term,))
-                        single_result_url = cursor.fetchone()[0]
-                        return jsonify({'has_single_result': True, 'single_result_url': single_result_url})
-                    else:
-                        return jsonify({'has_single_result': False})
-        except Error as e:
+            db = get_db_connection()
+            if db:
+                collection = db['meta_data']
+                count = collection.count_documents({"title": term})
+                if count == 1:
+                    single_result_url = collection.find_one({"title": term})['url']
+                    return jsonify({'has_single_result': True, 'single_result_url': single_result_url})
+                else:
+                    return jsonify({'has_single_result': False})
+        except Exception as e:
             print(f'Error: {e}')
     return jsonify({'has_single_result': False})
 
