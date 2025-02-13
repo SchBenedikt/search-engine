@@ -234,18 +234,18 @@
                         {% for result in results %}
                             <li class="list-group-item">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    {% if result[4] and not loop.first %}  <!-- result[4] ist das Bild -->
-                                        <img src="{{ result[4] }}" alt="Image for {{ result[1] or 'No title available' }}" class="img-thumbnail me-3 d-none d-md-block" style="width: 150px; height: auto;">
+                                    {% if result.image and not loop.first %}  <!-- result.image ist das Bild -->
+                                        <img src="{{ result.image }}" alt="Image for {{ result.title or 'No title available' }}" class="img-thumbnail me-3 d-none d-md-block" style="width: 150px; height: auto;">
                                     {% endif %}
                                     <div class="flex-grow-1 ms-3">
-                                        {% if result[1] %}  <!-- result[1] ist der Titel -->
-                                            <a href="{{ result[0] }}" target="_blank">{{ result[1] }}</a>  <!-- result[0] ist die URL -->
+                                        {% if result.title %}  <!-- result.title ist der Titel -->
+                                            <a href="{{ result.url }}" target="_blank">{{ result.title }}</a>  <!-- result[0] ist die URL -->
                                         {% else %}
-                                            <a href="{{ result[0] }}" target="_blank"><em>No title available</em></a>
+                                            <a href="{{ result.url }}" target="_blank"><em>No title available</em></a>
                                         {% endif %}
-                                        <p class="url">{{ result[0] }}</p>  <!-- result[0] ist die URL -->
-                                        {% if result[2] %}  <!-- result[2] ist die Beschreibung -->
-                                            <p class="mt-2">{{ result[2] }}</p>
+                                        <p class="url">{{ result.url }}</p>  <!-- result[0] ist die URL -->
+                                        {% if result.description %}  <!-- result.description ist die Beschreibung -->
+                                            <p class="mt-2">{{ result.description }}</p>
                                         {% else %}
                                             <p class="mt-2"><em>No description available</em></p>
                                         {% endif %}
@@ -255,9 +255,9 @@
                                             Actions
                                         </button>
                                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ loop.index }}">
-                                            <li><a class="dropdown-item" href="{{ result[0] }}" target="_blank">Open</a></li>
+                                            <li><a class="dropdown-item" href="{{ result.url }}" target="_blank">Open</a></li>
                                             <li><a class="dropdown-item" href="#">Bookmark</a></li>
-                                            <li><a class="dropdown-item" href="#" onclick="likeResult('{{ result[0] }}')">Like</a></li>  <!-- result[0] für die URL -->
+                                            <li><a class="dropdown-item" href="#" onclick="likeResult('{{ result.url }}')">Like</a></li>  <!-- result[0] für die URL -->
                                         </ul>
                                     </div>
                                 </div>
