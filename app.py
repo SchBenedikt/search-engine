@@ -156,5 +156,11 @@ def check_single_result():
             print(f'Error: {e}')
     return jsonify({'has_single_result': False})
 
+@app.route('/test_preprocess', methods=['GET'])
+def test_preprocess():
+    query = request.args.get('query', '')
+    processed_query = preprocess_query(query)
+    return jsonify({'original_query': query, 'processed_query': processed_query})
+
 if __name__ == '__main__':
     app.run(debug=True)
