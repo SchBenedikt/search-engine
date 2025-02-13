@@ -432,7 +432,7 @@
         
                     function fetchAIResponse() {
                         const searchQuery = document.getElementById('search-input').value.trim();
-                        const apiUrl = `https://ai.schächner.de/generate?type=text&prompt=${encodeURIComponent(searchQuery)}&aiModel=@hf/google/gemma-7b-it`;
+                        const apiUrl = `https://ai.schächner.de/generate?type=text&prompt=${encodeURIComponent(searchQuery)}&aiModel=@hf/google/gemma-7b-it&role=Du%20bist%20eine%20künstliche%20Intelligenz.%20Dein%20User%20sucht%20nach%20einer%20Antwort%20oder%20irgendetwas%20anderem.%20Du%20bist%20in%20einer%20Suchmaschine%20gleich%20ganz%20oben%20eingebunden%20und%20sollst%20immer%20Hilfe%20leisten.%20Antworte%20immer%20in%20der%20Sprache,%20in%20der%20auch%20gesucht/gefragt%20wurde.`;
         
                         // Show loading animation
                         document.getElementById('ai-response').innerHTML = `
