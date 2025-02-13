@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template, jsonify, redirect, url_for
-from pymongo import MongoClient
+from pymongo import MongoClient, TEXT
 import time
 
 app = Flask(__name__)
@@ -11,6 +11,8 @@ def get_db_connection():
     try:
         client = MongoClient('mongodb://localhost:27017/')
         db = client['search_engine']
+        # Stelle sicher, dass der Textindex erstellt wurde
+        db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
         return db
     except Exception as e:
         print(f'Error: {e}')
@@ -42,11 +44,13 @@ def search():
                 ).sort("likes", -1).skip((page - 1) * per_page).limit(per_page))
 
             elif query:
-                search_query = {"$or": [{"title": {"$regex": query, "$options": "i"}}, {"url": {"$regex": query, "$options": "i"}}]}
+                search_query = {"$text": {"$search": query}}
                 total_results = collection.count_documents(search_query)
 
                 if total_results > 0:
-                    results = list(collection.find(search_query).sort("likes", -1).skip((page - 1) * per_page).limit(per_page))
+                    results = list(collection.find(search_query, {"score": {"$meta": "textScore"}})
+                                   .sort([("score", {"$meta": "textScore"})])
+                                   .skip((page - 1) * per_page).limit(per_page))
                 else:
                     message = "No results found."
             else:
