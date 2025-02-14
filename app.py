@@ -36,11 +36,7 @@ def preprocess_query(query):
         processed_words.append(words[-1])  # Add the last word without stemming
     else:
         processed_words = [words[0]] if words[0].lower() not in stop_words else []
-    # Join words without spaces to handle cases like 'home assistant' and 'homeassistant'
-    joined_query = ''.join(processed_words)
-    if joined_query == query:
-        return ' '.join(processed_words)
-    return ' '.join(processed_words) + ' ' + joined_query
+    return ' '.join(processed_words)
 
 @app.route('/', methods=['GET', 'POST'])
 def search():
