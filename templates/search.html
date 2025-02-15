@@ -251,17 +251,6 @@
                                             <p class="mt-2"><em>No description available</em></p>
                                         {% endif %}
                                     </div>
-                                    <div class="dropdown ms-3 d-none d-md-block">
-                                        <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ loop.index }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                            Actions
-                                        </button>
-                                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ loop.index }}">
-                                            <li><a class="dropdown-item" href="{{ result.url }}" target="_blank">Open</a></li>
-                                            <li><a class="dropdown-item" href="#">Bookmark</a></li>
-                                            <li><a class="dropdown-item" href="#" onclick="likeResult('{{ result.url }}')">Like</a></li>  <!-- result[0] für die URL -->
-                                            <li><a class="dropdown-item" href="#" onclick="viewEmbeddedWebsite('{{ result.url }}')">View Embedded Website</a></li>
-                                        </ul>
-                                    </div>
                                 </div>
                             </li>
                         {% endfor %}
