@@ -2,3 +2,4 @@ flask
 nltk
 textdistance
 pymongo
+favicon
