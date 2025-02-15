@@ -236,7 +236,12 @@
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="flex-grow-1 ms-3">
                                         {% if result.title %}  <!-- result.title ist der Titel -->
-                                            <a href="{{ result.url }}" target="_blank">{{ result.title }}</a>  <!-- result[0] ist die URL -->
+                                            <a href="{{ result.url }}" target="_blank">
+                                                {% if result.favicon %}
+                                                    <img src="{{ result.favicon }}" alt="Favicon" style="width: 16px; height: 16px; margin-right: 5px;">
+                                                {% endif %}
+                                                {{ result.title }}
+                                            </a>  <!-- result[0] ist die URL -->
                                         {% else %}
                                             <a href="{{ result.url }}" target="_blank"><em>No title available</em></a>
                                         {% endif %}

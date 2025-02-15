@@ -4,6 +4,7 @@ import time
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+import favicon  # P08ea
 
 app = Flask(__name__)
 
@@ -37,6 +38,20 @@ def preprocess_query(query):
     else:
         processed_words = [words[0]] if words[0].lower() not in stop_words else []
     return ' '.join(processed_words)
+
+favicon_cache = {}  # P7111
+
+def get_favicon_url(url):  # P4019
+    if url in favicon_cache:  # P7111
+        return favicon_cache[url]  # P7111
+    try:
+        icons = favicon.get(url)
+        if icons:
+            favicon_cache[url] = icons[0].url  # P7111
+            return icons[0].url
+    except Exception as e:
+        print(f'Error fetching favicon for {url}: {e}')
+    return None
 
 @app.route('/', methods=['GET', 'POST'])
 def search():
@@ -73,6 +88,8 @@ def search():
                     results = list(collection.find(search_query, {"score": {"$meta": "textScore"}})
                                    .sort([("score", {"$meta": "textScore"})])
                                    .skip((page - 1) * per_page).limit(per_page))
+                    for result in results:  # P8632
+                        result['favicon'] = get_favicon_url(result['url'])  # P8632
                 else:
                     message = "No results found."
             else:
@@ -130,7 +147,7 @@ def like():
 @app.route('/autocomplete', methods=['GET'])
 def autocomplete():
     term = request.args.get('term')
-    if term:
+    if (term):
         try:
             db = get_db_connection()
             if db is not None:
