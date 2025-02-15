@@ -3,3 +3,4 @@ nltk
 textdistance
 pymongo
 favicon
+gunicorn
