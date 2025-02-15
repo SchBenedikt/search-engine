@@ -273,11 +273,14 @@
             
             </div>
         <!-- Modal für die eingebettete Website -->
-<div class="modal fade" id="embeddedWebsiteModal" tabindex="-1" aria-labelledby="embeddedWebsiteModalLabel" aria-hidden="true">
+<div class="modal fade" id="embeddedWebsiteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="embeddedWebsiteModalLabel">Embedded Website</h5>
+                <!-- Updated header: Favicon, title, and URL -->
+                <h5 class="modal-title" id="embeddedWebsiteModalLabel">
+                    <!-- Modal title will be injected dynamically -->
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -287,21 +290,67 @@
     </div>
 </div>
 
+<!-- Replace the Custom Context Menu with a Bootstrap styled dropdown -->
+<div id="customContextMenu" class="dropdown-menu" style="position:absolute;">
+    <a class="dropdown-item" href="#" id="contextPreview">Vorschau</a>
+</div>
+
 <script>
-    function viewEmbeddedWebsite(url) {
+    // Updated viewEmbeddedWebsite to include favicon, title and URL in the modal header
+    function viewEmbeddedWebsite(url, title) {
+        const modalLabel = document.getElementById('embeddedWebsiteModalLabel');
+        modalLabel.innerHTML = `<img id="modalFavicon" src="" alt="Favicon" style="width:16px;height:16px;margin-right:5px;">${title}<br><small>${url}</small>`;
         const iframe = document.getElementById('embeddedWebsiteIframe');
         iframe.src = url;
         const modal = new bootstrap.Modal(document.getElementById('embeddedWebsiteModal'));
         modal.show();
+
+        // Fetch favicon
+        fetch('/favicon?url=' + encodeURIComponent(url))
+            .then(response => response.json())
+            .then(data => {
+                if (data.favicon) {
+                    document.getElementById('modalFavicon').src = data.favicon;
+                }
+            })
+            .catch(err => console.error('Favicon load error:', err));
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        let contextUrl = '';
+        let contextTitle = '';  // Store the website title
+        const contextMenu = document.getElementById('customContextMenu');
+        const contextPreview = document.getElementById('contextPreview');
+
+        // For each result element, add a right-click event listener
         document.querySelectorAll('.list-group-item').forEach(function (item) {
             item.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
-                const url = this.querySelector('a').href;
-                viewEmbeddedWebsite(url);
+                const link = this.querySelector('a');
+                if (link) {
+                    contextUrl = link.href;
+                    contextTitle = link.textContent.trim();
+                }
+                contextMenu.style.top = e.pageY + 'px';
+                contextMenu.style.left = e.pageX + 'px';
+                contextMenu.classList.add('show');
             });
+        });
+
+        // On clicking "Vorschau", open the modal with updated header
+        contextPreview.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (contextUrl) {
+                viewEmbeddedWebsite(contextUrl, contextTitle);
+            }
+            contextMenu.classList.remove('show');
+        });
+
+        // Hide context menu when clicking anywhere else
+        document.addEventListener('click', function (e) {
+            if (e.button !== 2) {
+                contextMenu.classList.remove('show');
+            }
         });
     });
 </script>
