@@ -234,9 +234,6 @@
                         {% for result in results %}
                             <li class="list-group-item">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    {% if result.image and not loop.first %}  <!-- result.image ist das Bild -->
-                                        <img src="{{ result.image }}" alt="Image for {{ result.title or 'No title available' }}" class="img-thumbnail me-3 d-none d-md-block" style="width: 150px; height: auto;">
-                                    {% endif %}
                                     <div class="flex-grow-1 ms-3">
                                         {% if result.title %}  <!-- result.title ist der Titel -->
                                             <a href="{{ result.url }}" target="_blank">{{ result.title }}</a>  <!-- result[0] ist die URL -->
@@ -258,6 +255,7 @@
                                             <li><a class="dropdown-item" href="{{ result.url }}" target="_blank">Open</a></li>
                                             <li><a class="dropdown-item" href="#">Bookmark</a></li>
                                             <li><a class="dropdown-item" href="#" onclick="likeResult('{{ result.url }}')">Like</a></li>  <!-- result[0] für die URL -->
+                                            <li><a class="dropdown-item" href="#" onclick="viewEmbeddedWebsite('{{ result.url }}')">View Embedded Website</a></li>
                                         </ul>
                                     </div>
                                 </div>
@@ -281,7 +279,29 @@
                 </ul>
             
             </div>
-        
+        <!-- Modal für die eingebettete Website -->
+<div class="modal fade" id="embeddedWebsiteModal" tabindex="-1" aria-labelledby="embeddedWebsiteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="embeddedWebsiteModalLabel">Embedded Website</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="embeddedWebsiteIframe" src="" width="100%" height="600px" style="border:none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function viewEmbeddedWebsite(url) {
+        const iframe = document.getElementById('embeddedWebsiteIframe');
+        iframe.src = url;
+        const modal = new bootstrap.Modal(document.getElementById('embeddedWebsiteModal'));
+        modal.show();
+    }
+</script>
 
             
             <!-- Pagination links -->
@@ -325,9 +345,6 @@
                 <div class="card-columns">
                     {% for result in results %}
                     <div class="card">
-                        {% if result.image %}
-                        <img src="{{ result.image }}" class="card-img-top" alt="Image for {{ result.title or 'No title available' }}">
-                        {% endif %}
                         <div class="card-body">
                             <h5 class="card-title">{{ result.title or "No title available" }}</h5>
                             <p class="card-text">{{ result.description or "No description available" }}</p>
@@ -369,6 +386,13 @@
                         console.error('Error:', error);
                         alert('Ein Fehler ist aufgetreten.');
                     });
+                }
+
+                function viewEmbeddedWebsite(url) {
+                    const iframe = document.querySelector(`iframe[src="${url}"]`);
+                    if (iframe) {
+                        iframe.scrollIntoView({ behavior: 'smooth' });
+                    }
                 }
         
                 const welcomeModalShown = document.cookie.includes('welcome_modal_shown=true');
