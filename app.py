@@ -88,8 +88,9 @@ def search():
                     results = list(collection.find(search_query, {"score": {"$meta": "textScore"}})
                                    .sort([("score", {"$meta": "textScore"})])
                                    .skip((page - 1) * per_page).limit(per_page))
-                    for result in results:  # P8632
-                        result['favicon'] = get_favicon_url(result['url'])  # P8632
+                    # Entferne synchrone Favicons: 
+                    # for result in results:
+                    #     result['favicon'] = get_favicon_url(result['url'])
                 else:
                     message = "No results found."
             else:
@@ -100,6 +101,15 @@ def search():
 
     query_time = time.time() - start_time
     return render_template('search.html', results=results, query_time=query_time, message=message, total_results=total_results, page=page, per_page=per_page, query=query)
+
+# Neue API-Route zum asynchronen Abruf des Favicons
+@app.route('/favicon', methods=['GET'])
+def favicon_api():
+    url = request.args.get('url', '')
+    if not url:
+        return jsonify({'favicon': None}), 400
+    favicon_url = get_favicon_url(url)
+    return jsonify({'favicon': favicon_url})
 
 @app.route('/suggest', methods=['POST'])
 def suggest():
