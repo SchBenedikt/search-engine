@@ -17,7 +17,7 @@ https://hub.docker.com/r/schbenedikt/search
 To build the Docker image, run the following command in the root directory of the repository:
 
 ```sh
-docker build -t search .
+docker build -t ghcr.io/schbenedikt/search:latest .
 ```
 
 ### Running the Docker Container
@@ -25,7 +25,7 @@ docker build -t search .
 To run the Docker container, use the following command:
 
 ```sh
-docker run -p 5000:5000 search
+docker run -p 5000:5000 ghcr.io/schbenedikt/search:latest
 ```
 
 This will start the Flask application, and it will be accessible at `http://localhost:5000`.
