@@ -33,10 +33,3 @@ jobs:
         run: |
           DATE_TAG=$(date +'%Y%m%d%H%M%S')
           echo "image_tag=$DATE_TAG" >> $GITHUB_ENV
-
-      - name: Set container visibility to public
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh auth login --with-token <<< "${{ secrets.GHCR_TOKEN }}"
-          gh api -X PATCH "/orgs/${{ github.repository_owner }}/packages/container/${{ github.repository }}/visibility" --field visibility=public
