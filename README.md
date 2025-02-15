@@ -17,7 +17,7 @@ https://hub.docker.com/r/schbenedikt/search
 To build the Docker image, run the following command in the root directory of the repository:
 
 ```sh
-docker build -t search-engine .
+docker build -t search .
 ```
 
 ### Running the Docker Container
@@ -25,7 +25,7 @@ docker build -t search-engine .
 To run the Docker container, use the following command:
 
 ```sh
-docker run -p 5000:5000 search-engine
+docker run -p 5000:5000 search
 ```
 
 This will start the Flask application, and it will be accessible at `http://localhost:5000`.
