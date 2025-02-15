@@ -26,10 +26,16 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ghcr.io/schbenedikt/search-engine:latest
+          tags: ghcr.io/schbenedikt/search-engine:latest # Ensure the correct tag is used to avoid multiple packages
 
       - name: Extract image tag
         id: extract
         run: |
-          DATE_TAG=$(date +'%Y%m%d%H%M%S')
+          DATE_TAG=$(date +'%Y%m%d')
           echo "image_tag=$DATE_TAG" >> $GITHUB_ENV
+
+      - name: Build and push Docker image with date tag
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ghcr.io/schbenedikt/search-engine:${{ env.image_tag }}

@@ -17,7 +17,7 @@ https://hub.docker.com/r/schbenedikt/search
 To build the Docker image, run the following command in the root directory of the repository:
 
 ```sh
-docker build -t ghcr.io/schbenedikt/search:latest .
+docker build -t ghcr.io/schbenedikt/search-engine:latest .
 ```
 
 ### Running the Docker Container
@@ -25,7 +25,7 @@ docker build -t ghcr.io/schbenedikt/search:latest .
 To run the Docker container, use the following command:
 
 ```sh
-docker run -p 5000:5000 ghcr.io/schbenedikt/search:latest
+docker run -p 5000:5000 ghcr.io/schbenedikt/search-engine:latest
 ```
 
 This will start the Flask application, and it will be accessible at `http://localhost:5000`.
@@ -35,5 +35,8 @@ This will start the Flask application, and it will be accessible at `http://loca
 The Docker image is publicly accessible. To pull the Docker image from GitHub Container Registry, use the following command:
 
 ```sh
-docker pull ghcr.io/schbenedikt/search:latest
+docker pull ghcr.io/schbenedikt/search-engine:latest
 ```
+
+### Note
+Ensure that the `tags` field in the GitHub Actions workflow is correctly set to `ghcr.io/schbenedikt/search-engine:latest` to avoid multiple packages.
