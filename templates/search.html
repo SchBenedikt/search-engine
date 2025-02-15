@@ -294,6 +294,16 @@
         const modal = new bootstrap.Modal(document.getElementById('embeddedWebsiteModal'));
         modal.show();
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.list-group-item').forEach(function (item) {
+            item.addEventListener('contextmenu', function (e) {
+                e.preventDefault();
+                const url = this.querySelector('a').href;
+                viewEmbeddedWebsite(url);
+            });
+        });
+    });
 </script>
 
             
