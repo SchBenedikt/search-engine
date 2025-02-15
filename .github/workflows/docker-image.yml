@@ -32,3 +32,7 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/schbenedikt/search-engine:latest
+
+      - name: Make Docker package public
+        run: |
+          gh api -X PATCH /user/packages/container/ghcr.io/schbenedikt/search-engine/visibility --field visibility=public
