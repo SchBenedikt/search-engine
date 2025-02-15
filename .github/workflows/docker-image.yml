@@ -37,4 +37,4 @@ jobs:
         run: |
           gh api -X PATCH /user/packages/container/ghcr.io/schbenedikt/search-engine/visibility --field visibility=public
         env:
-          GHCR_TOKEN: ${{ secrets.GH_TOKEN }} 
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }} 
