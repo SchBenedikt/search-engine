@@ -29,3 +29,11 @@ docker run -p 5000:5000 ghcr.io/schbenedikt/search:latest
 ```
 
 This will start the Flask application, and it will be accessible at `http://localhost:5000`.
+
+### Pulling the Docker Image
+
+The Docker image is publicly accessible. To pull the Docker image from GitHub Container Registry, use the following command:
+
+```sh
+docker pull ghcr.io/schbenedikt/search:latest
+```
