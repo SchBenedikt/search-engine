@@ -2,51 +2,41 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v2
 
-      - name: Determine image tag
-        id: tag
-        run: |
-          # Aktuelles Datum im Format YYYY-MM-DD
-          DATE_TAG=$(date +'%Y-%m-%d')
-          # API-URL für die GitHub Container Registry
-          API_URL="https://api.github.com/orgs/${{ github.repository_owner }}/packages/container/${{ github.repository }}/versions"
-          # Vorhandene Tags abrufen
-          EXISTING_TAGS=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" $API_URL | jq -r '.[].name')
-          # Zähler für doppelte Tags
-          COUNTER=1
-          # Überprüfen, ob der Tag bereits existiert
-          while echo "$EXISTING_TAGS" | grep -q "^$DATE_TAG$"; do
-            DATE_TAG="${DATE_TAG}_$COUNTER"
-            COUNTER=$((COUNTER + 1))
-          done
-          echo "image_tag=$DATE_TAG" >> $GITHUB_ENV
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v2
         with:
-          context: .
           push: true
-          tags: ghcr.io/schbenedikt/search-engine:${{ env.image_tag }}
+          tags: ghcr.io/schbenedikt/search-engine:latest
+
+      - name: Extract image tag
+        id: extract
+        run: |
+          DATE_TAG=$(date +'%Y%m%d%H%M%S')
+          echo "image_tag=$DATE_TAG" >> $GITHUB_ENV
+
+      - name: Set container visibility to public
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh auth login --with-token <<< "${{ secrets.GHCR_TOKEN }}"
+          gh api -X PATCH "/orgs/${{ github.repository_owner }}/packages/container/${{ github.repository }}/visibility" --field visibility=public
