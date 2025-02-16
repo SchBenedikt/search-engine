@@ -38,6 +38,7 @@
                 <input type="text" class="form-control" id="db-name" placeholder="Enter Database Name">
             </div>
             <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-danger" id="delete-db-btn">Delete All Connections</button>
         </form>
 
         <h2 class="mt-5">Existing Database Connections</h2>
@@ -56,36 +57,16 @@
                     .then(response => response.json())
                     .then(data => {
                         dbList.innerHTML = '';
-                        data.connections.forEach((conn, index) => {
+                        data.connections.forEach((conn) => {
                             const listItem = document.createElement('li');
                             listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
                             listItem.innerHTML = `
                                 <span>${conn.url} (${conn.name})</span>
-                                <button class="btn btn-danger btn-sm" onclick="deleteDbConnection(${index})">Delete</button>
                             `;
                             dbList.appendChild(listItem);
                         });
                     })
                     .catch(error => console.error('Error loading DB connections:', error));
-            }
-
-            function deleteDbConnection(index) {
-                fetch('/delete-db-connection', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ index }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        loadDbConnections();
-                    } else {
-                        alert('Failed to delete DB connection.');
-                    }
-                })
-                .catch(error => console.error('Error deleting DB connection:', error));
             }
 
             document.getElementById('settings-form').addEventListener('submit', function(event) {
@@ -112,6 +93,27 @@
                     console.error('Error:', error);
                     alert('An error occurred while saving settings.');
                 });
+            });
+
+            document.getElementById('delete-db-btn').addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete all database connections?')) {
+                    fetch('/delete-db-connection', {
+                        method: 'POST',
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('All database connections deleted successfully!');
+                            loadDbConnections();
+                        } else {
+                            alert('Failed to delete database connections.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting database connections.');
+                    });
+                }
             });
 
             loadDbConnections();

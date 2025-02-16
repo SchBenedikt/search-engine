@@ -240,16 +240,16 @@ def get_db_connections():
 
 @app.route('/delete-db-connection', methods=['POST'])
 def delete_db_connection():
-    data = request.get_json()
-    index = data.get('index')
-    connections = get_db_config()
-    if index is not None and 0 <= index < len(connections):
-        connections.pop(index)
-        save_db_config(connections)
-        print(f'Deleted DB connection at index {index}')  # Logging
+    try:
+        os.remove('db_config.txt')
+        print('Deleted db_config.txt file')  # Logging
         return jsonify({'success': True})
-    print(f'Failed to delete DB connection at index {index}')  # Logging
-    return jsonify({'success': False})
+    except FileNotFoundError:
+        print('db_config.txt file not found')  # Logging
+        return jsonify({'success': False, 'message': 'File not found'})
+    except Exception as e:
+        print(f'Error deleting db_config.txt file: {e}')  # Logging
+        return jsonify({'success': False, 'message': 'Error deleting file'})
 
 if __name__ == '__main__':
     app.run(debug=True)
