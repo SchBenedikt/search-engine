@@ -17,18 +17,23 @@ stop_words = set(stopwords.words('english')).union(set(stopwords.words('german')
 stemmer = PorterStemmer()
 
 def get_db_connection():
-    try:
-        client = MongoClient('mongodb://mongodb:27017/')
-        db = client['search_engine']
-        # Stelle sicher, dass der Textindex erstellt wurde
-        if 'meta_data' in db.list_collection_names():
-            indexes = db['meta_data'].index_information()
-            if 'title_text_url_text' not in indexes:
-                db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
-        return db
-    except Exception as e:
-        print(f'Error: {e}')
-        return None
+    retries = 5
+    while retries > 0:
+        try:
+            client = MongoClient('mongodb://mongodb:27017/')
+            db = client['search_engine']
+            # Stelle sicher, dass der Textindex erstellt wurde
+            if 'meta_data' in db.list_collection_names():
+                indexes = db['meta_data'].index_information()
+                if 'title_text_url_text' not in indexes:
+                    db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
+            print('Successfully connected to MongoDB')
+            return db
+        except Exception as e:
+            print(f'Error: {e}')
+            retries -= 1
+            time.sleep(5)
+    return None
 
 # Funktion zur Vorverarbeitung der Suchanfrage
 def preprocess_query(query):
