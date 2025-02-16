@@ -18,7 +18,7 @@ stemmer = PorterStemmer()
 
 def get_db_connection():
     try:
-        client = MongoClient('mongodb://localhost:27017/')
+        client = MongoClient('mongodb://mongodb:27017/')
         db = client['search_engine']
         # Stelle sicher, dass der Textindex erstellt wurde
         if 'meta_data' in db.list_collection_names():
