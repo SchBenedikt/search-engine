@@ -5,6 +5,7 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 import favicon  # P08ea
+import os
 
 app = Flask(__name__)
 
@@ -12,28 +13,41 @@ app = Flask(__name__)
 like_times = {}
 
 # Lade die Stop-Wörter für Englisch und Deutsch
-nltk.download('punkt')
+nltk.download('stopwords')
 stop_words = set(stopwords.words('english')).union(set(stopwords.words('german')))
 stemmer = PorterStemmer()
 
+def get_db_config():
+    try:
+        with open('db_config.txt', 'r') as f:
+            lines = f.readlines()
+            connections = []
+            for i in range(0, len(lines), 2):
+                db_url = lines[i].strip()
+                db_name = lines[i + 1].strip() if i + 1 < len(lines) else 'search_engine'
+                connections.append({'url': db_url, 'name': db_name})
+            return connections
+    except FileNotFoundError:
+        return []
+
+def save_db_config(connections):
+    with open('db_config.txt', 'w') as f:
+        for conn in connections:
+            f.write(f"{conn['url']}\n{conn['name']}\n")
+
 def get_db_connection():
-    retries = 5
-    while retries > 0:
-        try:
-            client = MongoClient('mongodb://mongodb:27017/')
-            db = client['search_engine']
-            # Stelle sicher, dass der Textindex erstellt wurde
-            if 'meta_data' in db.list_collection_names():
-                indexes = db['meta_data'].index_information()
-                if 'title_text_url_text' not in indexes:
-                    db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
-            print('Successfully connected to MongoDB')
-            return db
-        except Exception as e:
-            print(f'Error: {e}')
-            retries -= 1
-            time.sleep(5)
-    return None
+    connections = get_db_config()
+    if not connections:
+        return None
+    try:
+        client = MongoClient(connections[0]['url'])
+        db = client[connections[0]['name']]
+        # Stelle sicher, dass der Textindex erstellt wurde
+        db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
+        return db
+    except Exception as e:
+        print(f'Error: {e}')
+        return None
 
 # Funktion zur Vorverarbeitung der Suchanfrage
 def preprocess_query(query):
@@ -203,19 +217,39 @@ def test_preprocess():
     processed_query = preprocess_query(query)
     return jsonify({'original_query': query, 'processed_query': processed_query})
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    try:
-        db = get_db_connection()
-        if db is not None:
-            return jsonify({'status': 'healthy'}), 200
-        else:
-            print('Datenbank nicht verfügbar, Anwendung nicht gestartet')
-            return jsonify({'status': 'unhealthy'}), 500
-    except Exception as e:
-        print(f'Error: {e}')
-        print('Datenbank nicht verfügbar, Anwendung nicht gestartet')
-        return jsonify({'status': 'unhealthy'}), 500
+@app.route('/settings', methods=['GET'])
+def settings():
+    return render_template('settings.html')
+
+@app.route('/save-settings', methods=['POST'])
+def save_settings():
+    data = request.get_json()
+    db_url = data.get('db_url')
+    db_name = data.get('db_name', 'search_engine')
+    if db_url:
+        connections = get_db_config()
+        connections.append({'url': db_url, 'name': db_name})
+        save_db_config(connections)
+        return jsonify({'success': True})
+    return jsonify({'success': False})
+
+@app.route('/get-db-connections', methods=['GET'])
+def get_db_connections():
+    connections = get_db_config()
+    return jsonify({'connections': connections})
+
+@app.route('/delete-db-connection', methods=['POST'])
+def delete_db_connection():
+    data = request.get_json()
+    index = data.get('index')
+    connections = get_db_config()
+    if index is not None and 0 <= index < len(connections):
+        connections.pop(index)
+        save_db_config(connections)
+        print(f'Deleted DB connection at index {index}')  # Logging
+        return jsonify({'success': True})
+    print(f'Failed to delete DB connection at index {index}')  # Logging
+    return jsonify({'success': False})
 
 if __name__ == '__main__':
     app.run(debug=True)
