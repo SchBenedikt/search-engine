@@ -21,7 +21,10 @@ def get_db_connection():
         client = MongoClient('mongodb://localhost:27017/')
         db = client['search_engine']
         # Stelle sicher, dass der Textindex erstellt wurde
-        db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
+        if 'meta_data' in db.list_collection_names():
+            indexes = db['meta_data'].index_information()
+            if 'title_text_url_text' not in indexes:
+                db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
         return db
     except Exception as e:
         print(f'Error: {e}')
@@ -194,6 +197,20 @@ def test_preprocess():
     query = request.args.get('query', '')
     processed_query = preprocess_query(query)
     return jsonify({'original_query': query, 'processed_query': processed_query})
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    try:
+        db = get_db_connection()
+        if db is not None:
+            return jsonify({'status': 'healthy'}), 200
+        else:
+            print('Datenbank nicht verfügbar, Anwendung nicht gestartet')
+            return jsonify({'status': 'unhealthy'}), 500
+    except Exception as e:
+        print(f'Error: {e}')
+        print('Datenbank nicht verfügbar, Anwendung nicht gestartet')
+        return jsonify({'status': 'unhealthy'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
