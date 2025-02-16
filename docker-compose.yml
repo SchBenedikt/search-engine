@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  search-engine:
+    build: .
+    depends_on:
+      - mongodb
+    ports:
+      - "5000:5000"
+    restart: always
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+volumes:
+  mongo-data:
