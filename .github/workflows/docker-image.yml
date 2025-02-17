@@ -26,7 +26,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ghcr.io/schbenedikt/search-engine:latest,ghcr.io/schbenedikt/mongodb:latest # Ensure the correct tag is used to avoid multiple packages
+          tags: ghcr.io/schbenedikt/search-engine:latest # Ensure the correct tag is used to avoid multiple packages
           platforms: linux/amd64,linux/arm64
 
       - name: Extract image tag
@@ -39,5 +39,5 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ghcr.io/schbenedikt/search-engine:${{ env.image_tag }},ghcr.io/schbenedikt/mongodb:${{ env.image_tag }}
+          tags: ghcr.io/schbenedikt/search-engine:${{ env.image_tag }}
           platforms: linux/amd64,linux/arm64
