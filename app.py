@@ -13,7 +13,7 @@ app = Flask(__name__)
 like_times = {}
 
 # Lade die Stop-Wörter für Englisch und Deutsch
-nltk.download('punkt_tab')
+nltk.download('punkt')
 stop_words = set(stopwords.words('english')).union(set(stopwords.words('german')))
 stemmer = PorterStemmer()
 
