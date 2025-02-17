@@ -60,7 +60,7 @@ version: '3.8'
 
 services:
   search-engine:
-    build: .
+    image: ghcr.io/schbenedikt/search-engine:latest
     depends_on:
       - mongodb
     ports:
