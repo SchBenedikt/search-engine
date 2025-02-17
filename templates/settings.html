@@ -37,6 +37,13 @@
                 <label for="db-name" class="form-label">Database Name</label>
                 <input type="text" class="form-control" id="db-name" placeholder="Enter Database Name">
             </div>
+            <div class="mb-3">
+                <label for="type-synonyms" class="form-label">Type Synonyms (JSON)</label>
+                <textarea class="form-control" id="type-synonyms" rows="4" placeholder='{"website": ["website", "webseite"]}'>{{ type_synonyms|safe }}</textarea>
+                <small class="form-text text-muted">
+                    Geben Sie ein gültiges JSON-Objekt an. Beispiel: {"website": ["website", "webseite"]}.
+                </small>
+            </div>
             <button type="submit" class="btn btn-primary">Save</button>
             <button type="button" class="btn btn-danger" id="delete-db-btn">Delete All Connections</button>
         </form>
@@ -73,12 +80,13 @@
                 event.preventDefault();
                 const dbUrl = document.getElementById('db-url').value;
                 const dbName = document.getElementById('db-name').value;
+                const typeSynonyms = document.getElementById('type-synonyms').value;
                 fetch('/save-settings', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ db_url: dbUrl, db_name: dbName }),
+                    body: JSON.stringify({ db_url: dbUrl, db_name: dbName, type_synonyms: typeSynonyms }),
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -86,7 +94,7 @@
                         alert('Settings saved successfully!');
                         loadDbConnections();
                     } else {
-                        alert('Failed to save settings.');
+                        alert('Failed to save settings: ' + (data.message || ''));
                     }
                 })
                 .catch(error => {

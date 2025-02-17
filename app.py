@@ -6,6 +6,7 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 import favicon  # P08ea
 import os
+import json  # Hinzugefügt
 
 app = Flask(__name__)
 
@@ -16,21 +17,14 @@ stemmer = PorterStemmer()
 
 def get_db_config():
     try:
-        with open('db_config.txt', 'r') as f:
-            lines = f.readlines()
-            connections = []
-            for i in range(0, len(lines), 2):
-                db_url = lines[i].strip()
-                db_name = lines[i + 1].strip() if i + 1 < len(lines) else 'search_engine'
-                connections.append({'url': db_url, 'name': db_name})
-            return connections
-    except FileNotFoundError:
+        with open('db_config.json', 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
         return []
 
 def save_db_config(connections):
-    with open('db_config.txt', 'w') as f:
-        for conn in connections:
-            f.write(f"{conn['url']}\n{conn['name']}\n")
+    with open('db_config.json', 'w') as f:
+        json.dump(connections, f)
 
 def get_db_connection():
     connections = get_db_config()
@@ -72,6 +66,14 @@ def get_favicon_url(url):  # P4019
         print(f'Error fetching favicon for {url}: {e}')
     return None
 
+# Neue Hilfsfunktion für Type-Synonyme
+def get_type_synonyms():
+    try:
+        with open('type_synonyms.json', 'r') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
 @app.route('/', methods=['GET', 'POST'])
 def search():
     results = []
@@ -80,48 +82,123 @@ def search():
     per_page = 10  # Anzahl der Ergebnisse pro Seite
     page = request.args.get('page', 1, type=int)
     query = ""
+    selected_type = ""
 
     if request.method == 'POST':
         query = request.form['query'].strip()
+        selected_type = request.form.get('type', '').strip()  # --> Filterwert aus dem Formular
         query = preprocess_query(query)  # Preprocess the query
-        return redirect(url_for('search', query=query, page=1))
+        return redirect(url_for('search', query=query, type=selected_type, page=1))
     else:
         query = request.args.get('query', '').strip()
+        selected_type = request.args.get('type', '').strip()
         query = preprocess_query(query)  # Preprocess the query
 
     start_time = time.time()
+    categories = []
     try:
         db = get_db_connection()
         if db is not None:
             collection = db['meta_data']
-            if query == "#all":
-                results = list(collection.find(
-                    {"$or": [{"title": {"$regex": query, "$options": "i"}}, {"url": {"$regex": query, "$options": "i"}}]}
-                ).sort("likes", -1).skip((page - 1) * per_page).limit(per_page))
+            # Alle in der DB vorhandenen Typen
+            all_types = db['meta_data'].distinct('type')
+            # Lade die Synonyme
+            synonyms = get_type_synonyms()
+            consolidated = {}
+            for t in all_types:
+                if t and t.strip() != '' and t.lower() != 'alle':
+                    found = False
+                    for canon, group in synonyms.items():
+                        if t in group:
+                            consolidated[canon] = group
+                            found = True
+                            break
+                    if not found:
+                        consolidated[t] = [t]
+            categories = list(consolidated.keys())
 
+            if query == "#all":
+                base_filter = {"$or": [
+                    {"title": {"$regex": query, "$options": "i"}},
+                    {"url": {"$regex": query, "$options": "i"}}
+                ]}
+                if selected_type:
+                    # Falls selected_type einen Synonym-Gruppe zugeordnet ist
+                    for canon, group in synonyms.items():
+                        if selected_type in group:
+                            selected_group = group
+                            break
+                    else:
+                        selected_group = [selected_type]
+                    base_filter = {"$and": [{"type": {"$in": selected_group}}, base_filter]}
+                results = list(collection.find(base_filter)
+                               .sort("likes", -1)
+                               .skip((page - 1) * per_page).limit(per_page))
             elif query:
                 search_query = {"$text": {"$search": query}}
+                if selected_type:
+                    for canon, group in synonyms.items():
+                        if selected_type in group:
+                            selected_group = group
+                            break
+                    else:
+                        selected_group = [selected_type]
+                    search_query = {"$and": [search_query, {"type": {"$in": selected_group}}]}
                 total_results = collection.count_documents(search_query)
-
                 if total_results > 0:
                     results = list(collection.find(search_query, {"score": {"$meta": "textScore"}})
                                    .sort([("score", {"$meta": "textScore"})])
                                    .skip((page - 1) * per_page).limit(per_page))
-                    # Entferne synchrone Favicons: 
-                    # for result in results:
-                    #     result['favicon'] = get_favicon_url(result['url'])
+                else:
+                    message = "No results found."
+            elif selected_type:
+                for canon, group in synonyms.items():
+                    if selected_type in group:
+                        selected_group = group
+                        break
+                else:
+                    selected_group = [selected_type]
+                search_query = {"type": {"$in": selected_group}}
+                total_results = collection.count_documents(search_query)
+                if total_results > 0:
+                    results = list(collection.find(search_query)
+                                   .skip((page - 1) * per_page).limit(per_page))
                 else:
                     message = "No results found."
             else:
                 results = list(collection.aggregate([{"$sample": {"size": 10}}]))
-
     except Exception as e:
         print(f'Error: {e}')
 
     query_time = time.time() - start_time
-    return render_template('search.html', results=results, query_time=query_time, message=message, total_results=total_results, page=page, per_page=per_page, query=query)
+    return render_template('search.html', results=results, query_time=query_time, message=message, total_results=total_results, page=page, per_page=per_page, query=query, categories=categories)
 
-# Neue API-Route zum asynchronen Abruf des Favicons
+# Neue Route zum Abruf der in der Datenbank vorhandenen distinct types
+@app.route('/types', methods=['GET'])
+def get_types():
+    try:
+        db = get_db_connection()
+        if db is not None:
+            all_types = db['meta_data'].distinct('type')
+            synonyms = get_type_synonyms()
+            consolidated = {}
+            for t in all_types:
+                if t and t.strip() != '' and t.lower() != 'alle':
+                    found = False
+                    for canon, group in synonyms.items():
+                        if t in group:
+                            consolidated[canon] = group
+                            found = True
+                            break
+                    if not found:
+                        consolidated[t] = [t]
+            # Es werden nur die kanonischen Typen zurückgegeben
+            types = list(consolidated.keys())
+            return jsonify({'types': types})
+    except Exception as e:
+        print(f'Error retrieving types: {e}')
+    return jsonify({'types': []})
+
 @app.route('/favicon', methods=['GET'])
 def favicon_api():
     url = request.args.get('url', '')
@@ -193,13 +270,26 @@ def test_preprocess():
 
 @app.route('/settings', methods=['GET'])
 def settings():
-    return render_template('settings.html')
+    type_synonyms = get_type_synonyms()
+    # Übergibt die Synonyme als formatierten JSON-String an das Template
+    return render_template('settings.html', type_synonyms=json.dumps(type_synonyms, indent=2))
 
 @app.route('/save-settings', methods=['POST'])
 def save_settings():
     data = request.get_json()
     db_url = data.get('db_url')
     db_name = data.get('db_name', 'search_engine')
+    # Speichern der Typ-Synonyme, wenn vorhanden
+    type_synonyms = data.get('type_synonyms')
+    if type_synonyms:
+        try:
+            # Erwartet einen gültigen JSON-String
+            parsed = json.loads(type_synonyms)
+            with open('type_synonyms.json', 'w') as f:
+                json.dump(parsed, f)
+        except Exception as e:
+            print(f"Error saving type synonyms: {e}")
+            return jsonify({'success': False, 'message': 'Fehler beim Speichern der Type Synonyms'})
     if db_url:
         connections = get_db_config()
         connections.append({'url': db_url, 'name': db_name})
@@ -215,14 +305,14 @@ def get_db_connections():
 @app.route('/delete-db-connection', methods=['POST'])
 def delete_db_connection():
     try:
-        os.remove('db_config.txt')
-        print('Deleted db_config.txt file')  # Logging
+        os.remove('db_config.json')
+        print('Deleted db_config.json file')  # Logging
         return jsonify({'success': True})
     except FileNotFoundError:
-        print('db_config.txt file not found')  # Logging
+        print('db_config.json file not found')  # Logging
         return jsonify({'success': False, 'message': 'File not found'})
     except Exception as e:
-        print(f'Error deleting db_config.txt file: {e}')  # Logging
+        print(f'Error deleting db_config.json file: {e}')  # Logging
         return jsonify({'success': False, 'message': 'Error deleting file'})
 
 if __name__ == '__main__':

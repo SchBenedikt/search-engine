@@ -1,2 +1,0 @@
-mongodb://localhost:27017
-search_engine
