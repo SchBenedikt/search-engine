@@ -13,6 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Download the 'stopwords' resource during the build process
 RUN python -m nltk.downloader stopwords
 
+# Download the 'punkt' resource during the build process
+RUN python -m nltk.downloader punkt
+
 # Add a health check to ensure the MongoDB connection is available before starting the Flask application
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --spider http://localhost:5000/health || (echo "Datenbank nicht verfügbar, Anwendung nicht gestartet" && exit 1)
 
