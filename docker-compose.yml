@@ -6,7 +6,7 @@ services:
     depends_on:
       - mongodb
     ports:
-      - "5000:5000"
+      - "5560:5560"
     restart: always
 
   mongodb:

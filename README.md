@@ -25,10 +25,10 @@ docker build -t ghcr.io/schbenedikt/search-engine:latest .
 To run the Docker container, use the following command:
 
 ```sh
-docker run -p 5000:5000 ghcr.io/schbenedikt/search-engine:latest
+docker run -p 5560:5560 ghcr.io/schbenedikt/search-engine:latest
 ```
 
-This will start the Flask application using Gunicorn as the WSGI server, and it will be accessible at `http://localhost:5000`.
+This will start the Flask application using Gunicorn as the WSGI server, and it will be accessible at `http://localhost:5560`.
 
 ### Pulling the Docker Image
 
@@ -49,7 +49,7 @@ To run both the search engine and MongoDB containers using Docker Compose, use t
 docker-compose up
 ```
 
-This will start both containers and the Flask application will be accessible at `http://localhost:5000`.
+This will start both containers and the Flask application will be accessible at `http://localhost:5560`.
 
 ### Docker Compose File
 
@@ -64,7 +64,7 @@ services:
     depends_on:
       - mongodb
     ports:
-      - "5000:5000"
+      - "5560:5560"
 
   mongodb:
     image: mongo:latest
