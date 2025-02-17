@@ -133,6 +133,14 @@
     <div class="container">
         <form class="d-flex w-100" method="POST" action="/">
             <input id="search-input" class="form-control me-2 flex-grow-1 transparent-search" type="search" placeholder="Search" aria-label="Search" name="query" value="{{ request.args.get('query', '') }}">
+            <select class="form-select me-2" name="type" id="type-select">
+                <option value="">Alle</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if cat == request.args.get('type', '') %} selected {% endif %}>
+                        {{ cat }}
+                    </option>
+                {% endfor %}
+            </select>
             <button class="btn btn-outline-dark" type="submit">Search</button>
         </form>
     
@@ -314,13 +322,32 @@
                 contextMenu.classList.remove('show');
             }
         });
+
+        // Populate type select with distinct types from /types
+        /*
+        $.ajax({
+            url: '/types',
+            type: 'GET',
+            success: function(data) {
+                var select = $('#type-select');
+                data.types.forEach(function(t) {
+                    select.append($('<option>', {value: t, text: t}));
+                });
+                // Preselect from URL query if available
+                var urlParams = new URLSearchParams(window.location.search);
+                var selectedType = urlParams.get('type') || "";
+                select.val(selectedType);
+            }
+        });
+        */
     });
 </script>
 
             
-            <!-- Pagination links -->
+            <!-- Update Pagination Links -->
             <nav aria-label="Page navigation example">
                 <ul class="pagination justify-content-center mt-4">
+                    {% set type_param = request.args.get('type', '') %}
                     {% set last_page = (total_results // per_page) + 1 %}
                     {% set delta = 2 %}
                     {% set range_pages = range(1, last_page + 1) %}
@@ -328,7 +355,7 @@
                     
                     {% if page > 1 %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('search', query=query, page=page-1) }}">Previous</a>
+                            <a class="page-link" href="{{ url_for('search', query=query, type=type_param, page=page-1) }}">Previous</a>
                         </li>
                     {% endif %}
                     
@@ -338,7 +365,7 @@
                                 <li class="page-item disabled"><a class="page-link">...</a></li>
                             {% endif %}
                             <li class="page-item {% if p == page %}active{% endif %}">
-                                <a class="page-link" href="{{ url_for('search', query=query, page=p) }}">{{ p }}</a>
+                                <a class="page-link" href="{{ url_for('search', query=query, type=type_param, page=p) }}">{{ p }}</a>
                             </li>
                             {% set pages = pages + [p] %}
                         {% endif %}
@@ -346,7 +373,7 @@
         
                     {% if page < last_page %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('search', query=query, page=page+1) }}">Next</a>
+                            <a class="page-link" href="{{ url_for('search', query=query, type=type_param, page=page+1) }}">Next</a>
                         </li>
                     {% endif %}
                 </ul>
