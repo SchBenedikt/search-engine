@@ -40,6 +40,20 @@ def get_db_connection():
         print(f'Error: {e}')
         return None
 
+# NEW: Helper function to return all DB connections
+def get_all_db_connections():
+    connections = get_db_config()
+    dbs = []
+    for conn in connections:
+        try:
+            client = MongoClient(conn['url'])
+            db = client[conn['name']]
+            db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
+            dbs.append(db)
+        except Exception as e:
+            print(f"Error connecting to {conn}: {e}")
+    return dbs
+
 # Funktion zur Vorverarbeitung der Suchanfrage
 def preprocess_query(query):
     words = nltk.word_tokenize(query)
@@ -97,76 +111,93 @@ def search():
     start_time = time.time()
     categories = []
     try:
-        db = get_db_connection()
-        if db is not None:
-            collection = db['meta_data']
-            # Alle in der DB vorhandenen Typen
-            all_types = db['meta_data'].distinct('type')
-            # Lade die Synonyme
+        dbs = get_all_db_connections()
+        if not dbs:
+            message = "No database connections available."
+        else:
+            # Merge categories from all DBs
             synonyms = get_type_synonyms()
             consolidated = {}
-            for t in all_types:
-                if t and t.strip() != '' and t.lower() != 'alle':
-                    found = False
-                    for canon, group in synonyms.items():
-                        if t in group:
-                            consolidated[canon] = group
-                            found = True
-                            break
-                    if not found:
-                        consolidated[t] = [t]
+            for db in dbs:
+                all_types = db['meta_data'].distinct('type')
+                for t in all_types:
+                    if t and t.strip() != '' and t.lower() != 'alle':
+                        found = False
+                        for canon, group in synonyms.items():
+                            if t in group:
+                                consolidated[canon] = group
+                                found = True
+                                break
+                        if not found:
+                            consolidated[t] = [t]
             categories = list(consolidated.keys())
 
-            if query == "#all":
-                base_filter = {"$or": [
-                    {"title": {"$regex": query, "$options": "i"}},
-                    {"url": {"$regex": query, "$options": "i"}}
-                ]}
-                if selected_type:
-                    # Falls selected_type einen Synonym-Gruppe zugeordnet ist
+            temp_results = []
+            # Query each DB and merge results with total count
+            for db in dbs:
+                collection = db['meta_data']
+                if query == "#all":
+                    base_filter = {"$or": [
+                        {"title": {"$regex": query, "$options": "i"}},
+                        {"url": {"$regex": query, "$options": "i"}}
+                    ]}
+                    if selected_type:
+                        for canon, group in synonyms.items():
+                            if selected_type in group:
+                                selected_group = group
+                                break
+                        else:
+                            selected_group = [selected_type]
+                        base_filter = {"$and": [{"type": {"$in": selected_group}}, base_filter]}
+                    db_results = list(collection.find(base_filter))
+                    count = collection.count_documents(base_filter)
+                elif query:
+                    search_query = {"$text": {"$search": query}}
+                    if selected_type:
+                        for canon, group in synonyms.items():
+                            if selected_type in group:
+                                selected_group = group
+                                break
+                        else:
+                            selected_group = [selected_type]
+                        search_query = {"$and": [search_query, {"type": {"$in": selected_group}}]}
+                    count = collection.count_documents(search_query)
+                    db_results = list(collection.find(search_query, {"score": {"$meta": "textScore"}})
+                                       .sort([("score", {"$meta": "textScore"})]))
+                elif selected_type:
                     for canon, group in synonyms.items():
                         if selected_type in group:
                             selected_group = group
                             break
                     else:
                         selected_group = [selected_type]
-                    base_filter = {"$and": [{"type": {"$in": selected_group}}, base_filter]}
-                results = list(collection.find(base_filter)
-                               .sort("likes", -1)
-                               .skip((page - 1) * per_page).limit(per_page))
-            elif query:
-                search_query = {"$text": {"$search": query}}
-                if selected_type:
-                    for canon, group in synonyms.items():
-                        if selected_type in group:
-                            selected_group = group
-                            break
-                    else:
-                        selected_group = [selected_type]
-                    search_query = {"$and": [search_query, {"type": {"$in": selected_group}}]}
-                total_results = collection.count_documents(search_query)
-                if total_results > 0:
-                    results = list(collection.find(search_query, {"score": {"$meta": "textScore"}})
-                                   .sort([("score", {"$meta": "textScore"})])
-                                   .skip((page - 1) * per_page).limit(per_page))
+                    search_query = {"type": {"$in": selected_group}}
+                    count = collection.count_documents(search_query)
+                    db_results = list(collection.find(search_query))
                 else:
-                    message = "No results found."
-            elif selected_type:
-                for canon, group in synonyms.items():
-                    if selected_type in group:
-                        selected_group = group
-                        break
-                else:
-                    selected_group = [selected_type]
-                search_query = {"type": {"$in": selected_group}}
-                total_results = collection.count_documents(search_query)
-                if total_results > 0:
-                    results = list(collection.find(search_query)
-                                   .skip((page - 1) * per_page).limit(per_page))
-                else:
-                    message = "No results found."
-            else:
-                results = list(collection.aggregate([{"$sample": {"size": 10}}]))
+                    # Default: Sample results
+                    db_results = list(collection.aggregate([{"$sample": {"size": 10}}]))
+                    count = len(db_results)
+
+                total_results += count
+                temp_results.extend(db_results)
+            
+            # NEW: Deduplicate results by URL
+            unique_results = []
+            seen_urls = set()
+            for item in temp_results:
+                url = item.get("url")
+                if url and url not in seen_urls:
+                    unique_results.append(item)
+                    seen_urls.add(url)
+            total_results = len(unique_results)
+            
+            # If using text search, sort merged results by score
+            if query:
+                unique_results.sort(key=lambda x: x.get("score", 0), reverse=True)
+            # Apply pagination on deduplicated results
+            start_idx = (page - 1) * per_page
+            results = unique_results[start_idx:start_idx + per_page]
     except Exception as e:
         print(f'Error: {e}')
 

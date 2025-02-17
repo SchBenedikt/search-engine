@@ -1,1 +1,1 @@
-[{"url": "mongodb://localhost:27017", "name": "search_engine"}]
+[{"url": "mongodb://localhost:27017", "name": "search_youtube"}, {"url": "mongodb://localhost:27017", "name": "search_engine"}]
