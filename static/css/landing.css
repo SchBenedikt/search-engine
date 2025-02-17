@@ -1,0 +1,13 @@
+.hero {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 2rem 0;
+    text-align: center;
+}
+.hero .display-4 {
+    font-weight: bold;
+}
+.hero ul {
+    margin-top: 1rem;
+}

@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
     <style>
         .result-container {
             width: 100%;
@@ -106,55 +107,7 @@
         </div>
     </nav>
 
-    <div class="modal fade" id="welcomeModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="staticBackdropLabel">SchächnerSearch</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                This is a small search engine for testing purposes with crawled URLs.
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" id="openTutorialModalButton">Tutorial</button>
-            </div>
-          </div>
-        </div>
-      </div>    
-      <div class="modal fade" id="Tutorial" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="staticBackdropLabel">SchächnerSearch</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-4">
-                      <div class="list-group" id="list-tab" role="tablist">
-                        <a class="list-group-item list-group-item-action active" id="list-home-list" data-bs-toggle="list" href="#list-home" role="tab" aria-controls="list-home">Home</a>
-                        <a class="list-group-item list-group-item-action" id="list-search-list" data-bs-toggle="list" href="#list-search" role="tab" aria-controls="list-search">Search</a>
-                        <a class="list-group-item list-group-item-action" id="list-like-list" data-bs-toggle="list" href="#list-like" role="tab" aria-controls="list-like">Like</a>
-                    </div>
-                    </div>
-                    <div class="col-8">
-                      <div class="tab-content" id="nav-tabContent">
-                        <div class="tab-pane fade show active" id="list-home" role="tabpanel" aria-labelledby="list-home-list"><h3>Hello!</h3></div>
-                        <div class="tab-pane fade" id="list-search" role="tabpanel" aria-labelledby="list-search-list"><h3>Search</h3>Using the search function you can search for different pages that have already been crawled by this search engine.</div>
-                        <div class="tab-pane fade" id="list-like" role="tabpanel" aria-labelledby="list-like-list"><h3>Like</h3>Using the like function, you can like articles so that they are listed higher up. A maximum of one article can be liked per minute.</div>
-                    </div>
-                    </div>
-                  </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- Modal für die vollständige AI-Antwort -->
+    <!-- Modal für die vollständige AI-Antwort -->
 <!-- Modal für die vollständige AI-Antwort -->
 <div class="modal fade" id="full-response-modal" tabindex="-1" aria-labelledby="fullResponseModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -401,8 +354,16 @@
         
             {% else %}
             <div>
-                <h1 class="mt-4">SchächnerSearch</h1>
-                <p class="lead">Search the web with SchächnerSearch</p>            
+                <div class="hero">
+                    <h2 class="display-4">Experience Next-Gen Searching</h2>
+                    <p class="lead">SchächnerSearch is your modern gateway to the internet, offering real-time suggestions and a user-friendly design.</p>
+                    <ul class="list-group mx-auto" style="max-width: 600px;">
+                        <li class="list-group-item">Lightning-fast results</li>
+                        <li class="list-group-item">AI-assisted suggestions</li>
+
+                        <li class="list-group-item">Easy management via Settings</li>
+                    </ul>
+                </div>
                 <div class="card-columns">
                     {% for result in results %}
                     <div class="card">
@@ -455,28 +416,6 @@
                         iframe.scrollIntoView({ behavior: 'smooth' });
                     }
                 }
-        
-                const welcomeModalShown = document.cookie.includes('welcome_modal_shown=true');
-        
-                // Wenn das Cookie nicht existiert, zeige das Welcome-Modal
-                if (!welcomeModalShown) {
-                    const welcomeModal = new bootstrap.Modal(document.getElementById('welcomeModal'));
-                    welcomeModal.show();
-        
-                    // Setze das Cookie, um anzuzeigen, dass das Welcome-Modal angezeigt wurde
-                    document.cookie = 'welcome_modal_shown=true;max-age=86400'; // Cookie läuft nach 24 Stunden ab
-                }
-        
-                const openTutorialModalButton = document.getElementById('openTutorialModalButton');
-                openTutorialModalButton.addEventListener('click', function () {
-                    // Schließe das Welcome-Modal, bevor das Tutorial-Modal geöffnet wird
-                    const welcomeModal = bootstrap.Modal.getInstance(document.getElementById('welcomeModal'));
-                    welcomeModal.hide();
-        
-                    // Öffne das Tutorial-Modal
-                    const tutorialModal = new bootstrap.Modal(document.getElementById('Tutorial'));
-                    tutorialModal.show();
-                });
         
                 $(document).ready(function () {
                     $('#search-input').autocomplete({

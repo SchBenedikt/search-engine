@@ -9,9 +9,6 @@ import os
 
 app = Flask(__name__)
 
-# Dictionary, um die Zeit zu speichern, zu der ein Like für eine bestimmte URL vergeben wurde
-like_times = {}
-
 # Lade die Stop-Wörter für Englisch und Deutsch
 nltk.download('punkt')
 stop_words = set(stopwords.words('english')).union(set(stopwords.words('german')))
@@ -152,29 +149,6 @@ def suggest():
     except Exception as e:
         print(f'Error: {e}')
         return jsonify({'suggestions': []})
-
-@app.route('/like', methods=['POST'])
-def like():
-    if request.method == 'POST':
-        data = request.json
-        url = data.get('url')
-        current_time = time.time()
-        if url:
-            try:
-                if url in like_times and current_time - like_times[url] < 60:
-                    return jsonify({'success': False, 'message': 'You can only like once per minute.'}), 400
-                like_times[url] = current_time
-                
-                db = get_db_connection()
-                if db is not None:
-                    collection = db['meta_data']
-                    collection.update_one({"url": url}, {"$inc": {"likes": 1}})
-                
-                return jsonify({'success': True, 'message': 'Liked successfully'}), 200
-            except Exception as e:
-                print(f'Error: {e}')
-                return jsonify({'success': False, 'message': 'Error liking the link'}), 500
-    return jsonify({'success': False, 'message': 'Invalid request'}), 400
 
 @app.route('/autocomplete', methods=['GET'])
 def autocomplete():
