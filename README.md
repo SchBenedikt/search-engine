@@ -75,3 +75,22 @@ services:
 volumes:
   mongo-data:
 ```
+
+### Database Configuration
+
+The `db_config.json` file is used to store the database configuration. Here is an example of the `db_config.json` file:
+
+```json
+[
+  {
+    "url": "mongodb://localhost:27017",
+    "name": "search_engine",
+    "username": "your_username",
+    "password": "your_password"
+  }
+]
+```
+
+### Settings Page
+
+The `settings.html` file has been updated to include fields for username and password. You can access the settings page at `http://localhost:5560/settings` to update the database configuration.
