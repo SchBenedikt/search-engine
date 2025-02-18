@@ -258,7 +258,7 @@ def suggest():
         print(f'Error: {e}')
         return jsonify({'suggestions': []})
 
-@app.route('/autocomplete', methods['GET'])
+@app.route('/autocomplete', methods=['GET'])
 def autocomplete():
     term = request.args.get('term')
     if (term):
