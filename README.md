@@ -94,3 +94,27 @@ The `db_config.json` file is used to store the database configuration. Here is a
 ### Settings Page
 
 The `settings.html` file has been updated to include fields for username and password. You can access the settings page at `http://localhost:5560/settings` to update the database configuration.
+
+## Making MongoDB Accessible from the Internet
+
+### Using fritz.box for Port Forwarding
+
+1. Log in to your fritz.box router by entering `http://fritz.box` in your web browser.
+2. Navigate to the "Internet" section and then to "Permit Access".
+3. Click on "Add Device for Sharing".
+4. Select the device running MongoDB from the list.
+5. Set the application to "Other Application" and enter the following details:
+   - Protocol: TCP
+   - From port: 27017
+   - To port: 27017
+6. Click "OK" to save the settings.
+
+### Using Cloudflare Tunnel
+
+1. Sign up for a Cloudflare account if you don't have one.
+2. Go to the "Zero Trust" dashboard in Cloudflare.
+3. Navigate to "Access" and then to "Tunnels".
+4. Click on "Create a Tunnel".
+5. Follow the instructions to install the Cloudflare Tunnel client on your server.
+6. Create a new tunnel and configure it to forward traffic to your MongoDB instance on port 27017.
+7. Update your MongoDB connection URL to use the Cloudflare Tunnel endpoint.
