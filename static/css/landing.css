@@ -11,3 +11,78 @@
 .hero ul {
     margin-top: 1rem;
 }
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+    .hero {
+        background: #1e1e1e;
+        color: #e0e0e0;
+    }
+    .navbar, .card, .list-group-item {
+        background-color: #1e1e1e;
+        border-color: #333;
+    }
+    a {
+        color: #90caf9;
+    }
+    /* New: Ensure header (navbar) is dark with white text */
+    .navbar {
+        background-color: #1e1e1e !important;
+        color: #ffffff;
+    }
+    .navbar .navbar-brand,
+    .navbar .nav-link {
+        color: #ffffff !important;
+    }
+    /* New: Ensure search results and related elements display white text */
+    .list-group-item,
+    .card,
+    .card a,
+    .card p,
+    .result-container {
+        color: #ffffff;
+    }
+    /* New: Style the filter list (select element) in dark mode */
+    .form-select {
+        background-color: #1e1e1e;
+        color: #ffffff;
+        border-color: #333;
+    }
+    .form-select option {
+        background-color: #1e1e1e;
+        color: #ffffff;
+    }
+    /* New: Override search button styles in dark mode */
+    .btn-outline-dark {
+        color: #ffffff;
+        border-color: #ffffff;
+    }
+    .btn-outline-dark:hover {
+        color: #ffffff;
+        background-color: #2a2a2a;
+        border-color: #ffffff;
+    }
+    /* New: Dark mode styling for search input field */
+    .form-control {
+        background-color: #1e1e1e;
+        color: #ffffff;
+        border-color: #333;
+    }
+    /* New: Ensure placeholder text in input fields is white */
+    .form-control::placeholder {
+        color: #ffffff;
+        opacity: 1;
+    }
+    /* New: Dark mode styling for search duration toast */
+    #search-time-toast,
+    #search-time-toast .toast-header,
+    #search-time-toast .toast-body {
+        background-color: #1e1e1e;
+        color: #ffffff;
+        border-color: #333;
+    }
+}
