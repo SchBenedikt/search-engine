@@ -31,7 +31,7 @@ def get_db_connection():
     if not connections:
         return None
     try:
-        client = MongoClient(connections[0]['url'])
+        client = MongoClient(connections[0]['url'], username=connections[0].get('username'), password=connections[0].get('password'))
         db = client[connections[0]['name']]
         # Stelle sicher, dass der Textindex erstellt wurde
         db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
@@ -46,7 +46,7 @@ def get_all_db_connections():
     dbs = []
     for conn in connections:
         try:
-            client = MongoClient(conn['url'])
+            client = MongoClient(conn['url'], username=conn.get('username'), password=conn.get('password'))
             db = client[conn['name']]
             db['meta_data'].create_index([("title", TEXT), ("url", TEXT)])
             dbs.append(db)
@@ -258,7 +258,7 @@ def suggest():
         print(f'Error: {e}')
         return jsonify({'suggestions': []})
 
-@app.route('/autocomplete', methods=['GET'])
+@app.route('/autocomplete', methods['GET'])
 def autocomplete():
     term = request.args.get('term')
     if (term):
@@ -310,6 +310,8 @@ def save_settings():
     data = request.get_json()
     db_url = data.get('db_url')
     db_name = data.get('db_name', 'search_engine')
+    db_username = data.get('db_username')
+    db_password = data.get('db_password')
     # Speichern der Typ-Synonyme, wenn vorhanden
     type_synonyms = data.get('type_synonyms')
     if type_synonyms:
@@ -323,7 +325,7 @@ def save_settings():
             return jsonify({'success': False, 'message': 'Fehler beim Speichern der Type Synonyms'})
     if db_url:
         connections = get_db_config()
-        connections.append({'url': db_url, 'name': db_name})
+        connections.append({'url': db_url, 'name': db_name, 'username': db_username, 'password': db_password})
         save_db_config(connections)
         return jsonify({'success': True})
     return jsonify({'success': False})
