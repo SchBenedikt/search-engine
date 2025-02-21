@@ -1,5 +1,6 @@
 body {
     font-family: 'Instrument Sans', sans-serif;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .hero {
@@ -8,6 +9,7 @@ body {
     padding: 2rem;
     margin: 2rem 0;
     text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 .hero .display-4 {
     font-weight: bold;
@@ -25,6 +27,7 @@ body {
     .hero {
         background: #1e1e1e;
         color: #e0e0e0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
     .navbar, .card, .list-group-item {
         background-color: #1e1e1e;

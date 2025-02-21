@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>SchächnerSearch</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="SchächnerSearch – Moderne und schnelle Suchmaschine mit AI-Unterstützung.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vRkX/v+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
@@ -142,41 +143,15 @@
                     </option>
                 {% endfor %}
             </select>
+            <!-- NEW: Language filter -->
+            <select class="form-select me-2" name="lang" id="lang-select" style="max-width: 150px;">
+                <option value="">Alle</option>
+                <option value="en-US" {% if request.args.get('lang', '') == 'en-US' %} selected {% endif %}>English</option>
+                <option value="de-DE" {% if request.args.get('lang', '') == 'de-DE' %} selected {% endif %}>German</option>
+                <!-- Add more options as needed -->
+            </select>
             <button class="btn btn-outline-dark" type="submit">Search</button>
         </form>
-
-        <!-- New: Feature Overview Section -->
-        <section class="my-5">
-            <h2 class="mb-4">Funktionsübersicht</h2>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Schnelle Suche</h5>
-                            <p class="card-text">Finden Sie Ihre gewünschten Inhalte in Sekunden dank der optimierten Suchfunktion.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">AI-Unterstützung</h5>
-                            <p class="card-text">Erhalten Sie eine intelligente Antwort der KI, die auf Ihre Anfrage zugeschnitten ist.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Intuitive Navigation</h5>
-                            <p class="card-text">Nutzen Sie einfache Filter und paginierte Ergebnisse für eine bessere Übersicht.</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Optional: Weitere Feature-Karten hinzufügen -->
-            </div>
-        </section>
-
     
         {% if message %}
         <div class="alert alert-warning">
@@ -241,8 +216,8 @@
                                     <div class="flex-grow-1 ms-3">
                                         {% if result.title %}
                                             <a href="{{ result.url }}" target="_blank">
-                                                <!-- Ersetze direkten Favicon-Output durch ein leeres img mit data-url -->
-                                                <img class="fav-icon" data-url="{{ result.url }}" alt="Favicon" style="width:16px;height:16px;margin-right:5px;display:none;">
+                                                <!-- Favicon with lazy loading -->
+                                                <img class="fav-icon" data-url="{{ result.url }}" alt="Favicon" loading="lazy" style="width:16px;height:16px;margin-right:5px;display:none;">
                                                 {{ result.title }}
                                             </a>
                                         {% else %}
@@ -326,14 +301,20 @@
         const contextMenu = document.getElementById('customContextMenu');
         const contextPreview = document.getElementById('contextPreview');
 
-        // For each result element, add a right-click event listener
+        // Bind right-click event for result items
         document.querySelectorAll('.list-group-item').forEach(function (item) {
             item.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
                 const link = this.querySelector('a');
                 if (link) {
                     contextUrl = link.href;
-                    contextTitle = link.textContent.trim();
+                    // Exclude any nested image (favicon) from the title text
+                    const img = link.querySelector('img');
+                    if (img) {
+                        contextTitle = link.textContent.replace(img.alt, '').trim();
+                    } else {
+                        contextTitle = link.textContent.trim();
+                    }
                 }
                 contextMenu.style.top = e.pageY + 'px';
                 contextMenu.style.left = e.pageX + 'px';
@@ -382,6 +363,7 @@
             <nav aria-label="Page navigation example">
                 <ul class="pagination justify-content-center mt-4">
                     {% set type_param = request.args.get('type', '') %}
+                    {% set lang_param = request.args.get('lang', '') %}  <!-- NEW -->
                     {% set last_page = (total_results // per_page) + 1 %}
                     {% set delta = 2 %}
                     {% set range_pages = range(1, last_page + 1) %}
@@ -389,7 +371,7 @@
                     
                     {% if page > 1 %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('search', query=query, type=type_param, page=page-1) }}">Previous</a>
+                            <a class="page-link" href="{{ url_for('search', query=query, type=type_param, lang=lang_param, page=page-1) }}">Previous</a>
                         </li>
                     {% endif %}
                     
@@ -399,7 +381,7 @@
                                 <li class="page-item disabled"><a class="page-link">...</a></li>
                             {% endif %}
                             <li class="page-item {% if p == page %}active{% endif %}">
-                                <a class="page-link" href="{{ url_for('search', query=query, type=type_param, page=p) }}">{{ p }}</a>
+                                <a class="page-link" href="{{ url_for('search', query=query, type=type_param, lang=lang_param, page=p) }}">{{ p }}</a>
                             </li>
                             {% set pages = pages + [p] %}
                         {% endif %}
@@ -407,7 +389,7 @@
         
                     {% if page < last_page %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ url_for('search', query=query, type=type_param, page=page+1) }}">Next</a>
+                            <a class="page-link" href="{{ url_for('search', query=query, type=type_param, lang=lang_param, page=page+1) }}">Next</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -475,13 +457,6 @@
                     });
                 }
 
-                function viewEmbeddedWebsite(url) {
-                    const iframe = document.querySelector(`iframe[src="${url}"]`);
-                    if (iframe) {
-                        iframe.scrollIntoView({ behavior: 'smooth' });
-                    }
-                }
-        
                 $(document).ready(function () {
                     $('#search-input').autocomplete({
                         source: function (request, response) {

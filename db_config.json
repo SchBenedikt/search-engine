@@ -1,14 +1,1 @@
-[
-  {
-    "url": "mongodb://localhost:27017",
-    "name": "search_youtube",
-    "username": "",
-    "password": ""
-  },
-  {
-    "url": "mongodb://localhost:27017",
-    "name": "search_engine",
-    "username": "",
-    "password": ""
-  }
-]
+[{"url": "mongodb://localhost:27017", "name": "search_engine", "username": "", "password": ""}]
