@@ -201,12 +201,6 @@
         
         <div class="result-container">
             {% if query %}
-                <div id="ai-response" class="mt-4">
-                    <!-- Hier kommt der Inhalt rein, der abhängig von 'query' gerendert wird -->
-                </div>
-            {% endif %}
-            
-            {% if query %}
                 <br>
                 <ul class="list-group">
                     {% if results %}
@@ -219,6 +213,9 @@
                                                 <!-- Favicon with lazy loading -->
                                                 <img class="fav-icon" data-url="{{ result.url }}" alt="Favicon" loading="lazy" style="width:16px;height:16px;margin-right:5px;display:none;">
                                                 {{ result.title }}
+                                                {% if 'source' in result and result.source == 'google' %}
+                                                    <span class="badge bg-primary ms-2">Google</span>
+                                                {% endif %}
                                             </a>
                                         {% else %}
                                             <a href="{{ result.url }}" target="_blank"><em>No title available</em></a>
