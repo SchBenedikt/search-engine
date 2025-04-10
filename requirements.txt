@@ -5,3 +5,4 @@ pymongo
 favicon
 gunicorn
 requests
+python-dotenv

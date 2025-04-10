@@ -3,12 +3,19 @@ import time
 import json
 import logging
 import requests  # Import requests library
+import re  # Import für reguläre Ausdrücke
+from urllib.parse import urlparse, urlunparse  # Import für URL-Parsing
+import idna  # Für die Verarbeitung von internationalisierten Domainnamen
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 from pymongo import MongoClient, TEXT
 import nltk
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 import favicon  # P08ea
+from dotenv import load_dotenv  # Importiere dotenv
+
+# .env-Datei laden
+load_dotenv()
 
 # Logging konfigurieren
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -16,9 +23,22 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 app = Flask(__name__)
 app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'true').lower() == 'true'
 
+# Download all necessary NLTK resources
 nltk.download('punkt')
-stop_words = set(stopwords.words('english')).union(set(stopwords.words('german')))
-stemmer = PorterStemmer()
+nltk.download('punkt_tab')
+nltk.download('stopwords')
+
+# Initialize stopwords and stemmer
+try:
+    stop_words = set(stopwords.words('english')).union(set(stopwords.words('german')))
+    stemmer = PorterStemmer()
+except LookupError as e:
+    logging.error(f"NLTK resource error: {e}")
+    # Attempt to download missing resources again
+    nltk.download('punkt_tab')
+    nltk.download('stopwords')
+    stop_words = set(stopwords.words('english')).union(set(stopwords.words('german')))
+    stemmer = PorterStemmer()
 
 def get_db_config():
     try:
@@ -91,6 +111,55 @@ def get_type_synonyms():
             return json.load(f)
     except Exception:
         return {}
+
+# Neue Funktion zur URL-Normalisierung
+def normalize_url(url):
+    """
+    Normalisiert eine URL, um Duplikate zu erkennen.
+    - Entfernt Trailing-Slashes
+    - Konvertiert IDN-Domains zu ASCII
+    - Normalisiert das Schema (http/https)
+    """
+    if not url:
+        return ''
+    
+    # URL parsen
+    try:
+        parsed_url = urlparse(url)
+        
+        # Wenn kein Schema vorhanden ist, füge http:// hinzu
+        if not parsed_url.scheme:
+            url = 'http://' + url
+            parsed_url = urlparse(url)
+            
+        # Hostname zu ASCII konvertieren (für IDN-Domains)
+        hostname = parsed_url.netloc
+        try:
+            # Wenn es sich um einen internationalisierten Domainnamen handelt
+            if any(ord(c) > 127 for c in hostname):
+                hostname = hostname.encode('idna').decode('ascii')
+        except Exception as e:
+            logging.error(f"IDN conversion error for {hostname}: {e}")
+        
+        # Path normalisieren - Trailing-Slashes entfernen, außer wenn der Pfad nur aus / besteht
+        path = parsed_url.path
+        if path.endswith('/') and len(path) > 1:
+            path = path[:-1]
+            
+        # URL neu zusammensetzen
+        normalized = urlunparse((
+            parsed_url.scheme,
+            hostname,
+            path,
+            parsed_url.params,
+            parsed_url.query,
+            ''  # Fragment entfernen
+        ))
+        
+        return normalized
+    except Exception as e:
+        logging.error(f"URL normalization error for {url}: {e}")
+        return url  # Im Fehlerfall Original-URL zurückgeben
 
 # Function to fetch search results from Google Custom Search API
 def fetch_google_results(query):
@@ -218,33 +287,118 @@ def search():
                 total_results += count
                 temp_results.extend(db_results)
             
-            # NEW: Deduplicate results by URL
+            # NEW: Deduplicate results by URL - mit normalisierter URL
             unique_results = []
             seen_urls = set()
             for item in temp_results:
                 url = item.get("url")
-                if url and url not in seen_urls:
-                    unique_results.append(item)
-                    seen_urls.add(url)
-            total_results = len(unique_results)
+                if url:
+                    normalized_url = normalize_url(url)
+                    if normalized_url and normalized_url not in seen_urls:
+                        unique_results.append(item)
+                        seen_urls.add(normalized_url)
             
             # If using text search, sort merged results by score
             if query:
                 unique_results.sort(key=lambda x: x.get("score", 0), reverse=True)
-            # Apply pagination on deduplicated results
-            start_idx = (page - 1) * per_page
-            results = unique_results[start_idx:start_idx + per_page]
             
-            # Fetch Google search results and merge with local results
-            google_results = fetch_google_results(query)
-            for item in google_results:
-                results.append({
-                    'title': item.get('title'),
-                    'url': item.get('link'),
-                    'description': item.get('snippet')
-                })
+            # Fetch Google search results - aber nur wenn Suche aktiv ist
+            google_items = []
+            if query and query != "#all":
+                google_results = fetch_google_results(query)
+                
+                # Bereite Google-Ergebnisse vor
+                for idx, item in enumerate(google_results):
+                    url = item.get('link')
+                    if url:
+                        normalized_url = normalize_url(url)
+                        if normalized_url and normalized_url not in seen_urls:
+                            # Weniger steile Skalierung des Scores für bessere Durchmischung
+                            score_boost = 1000 - (idx * 10)  # Linearer Abfall von 1000
+                            google_items.append({
+                                'title': item.get('title'),
+                                'url': url,
+                                'description': item.get('snippet'),
+                                'source': 'google',  # Markierung für Google-Ergebnisse
+                                'score': score_boost
+                            })
+                            seen_urls.add(normalized_url)
+            
+            # Lokale Ergebnisse sammeln mit ihren Scores - mit normalisierter URL-Prüfung
+            local_items = []
+            
+            for item in unique_results:
+                url = item.get('url')
+                if url:
+                    # URL wurde bereits bei der ersten Deduplizierung normalisiert
+                    # und ist bereits in seen_urls enthalten
+                    # Den Original-Score beibehalten, aber mit Faktor multiplizieren
+                    score = item.get('score', 0) * 8
+                    local_items.append({
+                        'title': item.get('title'),
+                        'url': url,
+                        'description': item.get('description', ''),
+                        'source': 'local',
+                        'score': score
+                    })
+            
+            # VERBESSERTE DURCHMISCHUNG: Google und lokale Ergebnisse abwechselnd einsortieren
+            # Dabei aber die Scores respektieren - Top Google mit Top Lokal abwechseln
+            combined_results = []
+            
+            # Sortiere beide Listen nach Score
+            google_items.sort(key=lambda x: x.get('score', 0), reverse=True)
+            local_items.sort(key=lambda x: x.get('score', 0), reverse=True)
+            
+            # Initiale Werte für die Durchmischung
+            max_results = len(google_items) + len(local_items)
+            
+            # 3:2 Verhältnis für Google:Lokal (mehr Google-Ergebnisse am Anfang)
+            ratio_google = 3
+            ratio_local = 2
+            google_added = 0
+            local_added = 0
+            
+            # Während wir noch Ergebnisse haben
+            while google_items or local_items:
+                # Füge Google-Ergebnisse hinzu basierend auf dem Verhältnis
+                for _ in range(ratio_google):
+                    if google_items:
+                        combined_results.append(google_items.pop(0))
+                        google_added += 1
+                    else:
+                        break
+                
+                # Füge lokale Ergebnisse hinzu basierend auf dem Verhältnis
+                for _ in range(ratio_local):
+                    if local_items:
+                        combined_results.append(local_items.pop(0))
+                        local_added += 1
+                    else:
+                        break
+                
+            # Füge übrig gebliebene Ergebnisse hinzu
+            combined_results.extend(google_items)
+            combined_results.extend(local_items)
+            
+            logging.info(f"Google results: {google_added}, Local results: {local_added}")
+            
+            # Aktualisiere die Gesamtanzahl der Ergebnisse
+            total_results = len(combined_results)
+            
+            # Wende Paginierung an
+            start_idx = (page - 1) * per_page
+            end_idx = min(start_idx + per_page, total_results)
+            
+            # Sichere Indizes verwenden
+            if start_idx < total_results:
+                results = combined_results[start_idx:end_idx]
+            else:
+                results = []
+                
     except Exception as e:
         print(f'Error: {e}')
+        logging.error(f'Search error: {e}')
 
     query_time = time.time() - start_time
     return render_template('search.html', results=results, query_time=query_time, message=message, total_results=total_results, page=page, per_page=per_page, query=query, categories=categories, lang=selected_lang)  # NEW
