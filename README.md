@@ -8,6 +8,7 @@ https://hub.docker.com/r/schbenedikt/search
 - Display of the search speed.
 - Ask AI for help.
 - Uses MongoDB for database operations.
+- Integration with Google search results.
 
 ## Docker Instructions
 

@@ -2,6 +2,7 @@ import os
 import time
 import json
 import logging
+import requests  # Import requests library
 from flask import Flask, request, render_template, jsonify, redirect, url_for
 from pymongo import MongoClient, TEXT
 import nltk
@@ -90,6 +91,24 @@ def get_type_synonyms():
             return json.load(f)
     except Exception:
         return {}
+
+# Function to fetch search results from Google Custom Search API
+def fetch_google_results(query):
+    api_key = os.getenv('GOOGLE_API_KEY')
+    cx = os.getenv('GOOGLE_CX')
+    if not api_key or not cx:
+        logging.error('Google API key or CX is not set.')
+        return []
+    
+    url = f'https://www.googleapis.com/customsearch/v1?q={query}&key={api_key}&cx={cx}'
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        return data.get('items', [])
+    except requests.RequestException as e:
+        logging.error(f'Error fetching Google search results: {e}')
+        return []
 
 @app.route('/', methods=['GET', 'POST'])
 def search():
@@ -215,6 +234,15 @@ def search():
             # Apply pagination on deduplicated results
             start_idx = (page - 1) * per_page
             results = unique_results[start_idx:start_idx + per_page]
+            
+            # Fetch Google search results and merge with local results
+            google_results = fetch_google_results(query)
+            for item in google_results:
+                results.append({
+                    'title': item.get('title'),
+                    'url': item.get('link'),
+                    'description': item.get('snippet')
+                })
     except Exception as e:
         print(f'Error: {e}')
 
