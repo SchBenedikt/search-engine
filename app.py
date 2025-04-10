@@ -179,6 +179,62 @@ def fetch_google_results(query):
         logging.error(f'Error fetching Google search results: {e}')
         return []
 
+def fetch_ai_response(query):
+    api_key = os.getenv('GEMINI_API_KEY')
+    if not api_key:
+        logging.error('Gemini API key is not set.')
+        return None
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    headers = {'Content-Type': 'application/json'}
+    payload = {
+        "contents": [{
+            "parts": [{"text": query}]
+        }]
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        return data.get('contents', [{}])[0].get('parts', [{}])[0].get('text', '')
+    except requests.RequestException as e:
+        logging.error(f'Error fetching AI response: {e}')
+        return None
+
+def combine_results(local_results, google_results):
+    combined_results = []
+    seen_urls = set()
+
+    # Add local results first
+    for item in local_results:
+        url = item.get('url')
+        if url:
+            normalized_url = normalize_url(url)
+            if normalized_url and normalized_url not in seen_urls:
+                combined_results.append(item)
+                seen_urls.add(normalized_url)
+
+    # Add Google results next
+    for idx, item in enumerate(google_results):
+        url = item.get('link')
+        if url:
+            normalized_url = normalize_url(url)
+            if normalized_url and normalized_url not in seen_urls:
+                score_boost = 1000 - (idx * 10)
+                combined_results.append({
+                    'title': item.get('title'),
+                    'url': url,
+                    'description': item.get('snippet'),
+                    'source': 'google',
+                    'score': score_boost
+                })
+                seen_urls.add(normalized_url)
+
+    # Sort combined results by score
+    combined_results.sort(key=lambda x: x.get('score', 0), reverse=True)
+    return combined_results
+
 @app.route('/', methods=['GET', 'POST'])
 def search():
     results = []
@@ -395,13 +451,16 @@ def search():
                 results = combined_results[start_idx:end_idx]
             else:
                 results = []
+
+            # Fetch AI response
+            ai_response = fetch_ai_response(query)
                 
     except Exception as e:
         print(f'Error: {e}')
         logging.error(f'Search error: {e}')
 
     query_time = time.time() - start_time
-    return render_template('search.html', results=results, query_time=query_time, message=message, total_results=total_results, page=page, per_page=per_page, query=query, categories=categories, lang=selected_lang)  # NEW
+    return render_template('search.html', results=results, query_time=query_time, message=message, total_results=total_results, page=page, per_page=per_page, query=query, categories=categories, lang=selected_lang, ai_response=ai_response)  # NEW
 
 # Neue Route zum Abruf der in der Datenbank vorhandenen distinct types
 @app.route('/types', methods=['GET'])
