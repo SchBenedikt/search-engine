@@ -1,3 +1,6 @@
+
+![image](https://github.com/user-attachments/assets/ebf66384-84b5-417f-8509-e81df810fd32)
+
 # search-engine
 The matching search engine to my [web crawler](https://github.com/SchBenedikt/web-crawler).
 
