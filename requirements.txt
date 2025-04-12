@@ -8,3 +8,5 @@ requests
 python-dotenv
 wikipedia
 idna
+google-genai
+google-generativeai
