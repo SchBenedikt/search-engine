@@ -1,0 +1,21 @@
+<!-- Search form component -->
+<form class="d-flex w-100" method="POST" action="/search">
+    <input id="search-input" class="form-control me-2 flex-grow-1 transparent-search" type="search" placeholder="Search" aria-label="Search" name="query" value="{{ request.args.get('query', '') }}">
+    <!-- Updated select element with reduced width -->
+    <select class="form-select me-2" name="type" id="type-select" style="max-width: 150px;">
+        <option value="">Alle</option>
+        {% for cat in categories %}
+            <option value="{{ cat }}" {% if cat == request.args.get('type', '') %} selected {% endif %}>
+                {{ cat }}
+            </option>
+        {% endfor %}
+    </select>
+    <!-- Language filter -->
+    <select class="form-select me-2" name="lang" id="lang-select" style="max-width: 150px;">
+        <option value="">All</option>
+        <option value="en-US" {% if request.args.get('lang', '') == 'en-US' %} selected {% endif %}>English</option>
+        <option value="de-DE" {% if request.args.get('lang', '') == 'de-DE' %} selected {% endif %}>German</option>
+        <!-- Add more options as needed -->
+    </select>
+    <button class="btn btn-outline-dark" type="submit">Search</button>
+</form>

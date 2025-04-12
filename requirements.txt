@@ -6,3 +6,5 @@ favicon
 gunicorn
 requests
 python-dotenv
+wikipedia
+idna

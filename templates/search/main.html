@@ -1,0 +1,64 @@
+{% extends "search/base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block modals %}
+<!-- Modal for the full AI response -->
+<div class="modal fade" id="full-response-modal" tabindex="-1" aria-labelledby="fullResponseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fullResponseModalLabel">Full AI Response</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="full-response-modal-body">
+                <!-- The full response will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+    {% include 'search/components/search_form.html' %}
+
+    {% if message %}
+    <div class="alert alert-warning">
+        {{ message }}
+    </div>
+    {% endif %}
+
+    <div class="result-container">
+        {% if query %}
+            <br>
+            <!-- Add placeholder for AI response that will be filled asynchronously -->
+            <div id="ai-response-container"></div>
+            
+            <!-- Search content wrapper with knowledge panel -->
+            <div class="search-content-wrapper">
+                <!-- Search results column -->
+                {% include 'search/components/results.html' %}
+                
+                <!-- Knowledge panel column -->
+                {% include 'search/components/knowledge_panel.html' %}
+            </div>
+
+            <!-- Search elsewhere section -->
+            {% include 'search/components/search_elsewhere.html' %}
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block toasts %}
+    {% include 'search/components/toasts.html' %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {% if ai_response_url %}
+    <div id="ai-response-url" data-url="{{ ai_response_url }}" style="display: none;"></div>
+    {% endif %}
+{% endblock %}
