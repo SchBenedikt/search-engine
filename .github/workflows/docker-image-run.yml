@@ -1,0 +1,25 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Pulled das bestehende Docker-Image aus dem GitHub Container Registry
+      - name: Pull Docker Image
+        run: docker pull ghcr.io/schbenedikt/search-engine:main
+
+      # Nutzt die run-docker Action, um den Container auszuführen
+      - name: Run Docker Container
+        uses: CoronelEzequiel/run-docker@v1
+        with:
+          image: ghcr.io/schbenedikt/search-engine:main
