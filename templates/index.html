@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Search – Modern and fast search engine with AI support.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vRkX/v+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <!-- Three.js for 3D visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Instrument Serif font for headers -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Instrument Sans as body font for nice contrast -->
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <style>
+        /* Landing page specific styles */
+        .heading-font {
+            font-family: 'Instrument Serif', serif;
+        }
+        
+        .body-font {
+            font-family: 'Instrument Sans', sans-serif;
+        }
+        
+        .hero-section {
+            height: 100vh; /* Full height of viewport */
+            width: 100vw; /* Full width of viewport */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(245, 247, 250, 0.7) 0%, rgba(195, 207, 226, 0.7) 100%);
+            position: relative;
+            overflow: hidden;
+            padding: 0; /* Remove padding */
+            margin: 0; /* Remove margin */
+        }
+        
+        /* Pattern overlay with reduced opacity to let 3D visualization show through */
+        .hero-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('{{ url_for("static", filename="img/pattern.svg") }}') center/cover no-repeat;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Style for 3D visualization canvas */
+        #visualization-canvas {
+            filter: blur(0px);
+            opacity: 0.8;
+        }
+        
+        .search-box-container {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50px;
+            padding: 8px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 90%; /* Ensures the container is responsive */
+        }
+        
+        .search-box-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        @media (max-width: 576px) {
+            .search-box-container {
+                padding: 6px 15px;
+            }
+            
+            .search-box-container input {
+                font-size: 0.9rem;
+            }
+        }
+        
+        .feature-card {
+            border-radius: 15px;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #375a7f;
+        }
+        
+        .stat-card {
+            padding: 2rem;
+            text-align: center;
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #375a7f, #6c5ce7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .cta-section {
+            background: linear-gradient(45deg, #375a7f, #6c5ce7);
+            color: white;
+            padding: 5rem 0;
+        }
+        
+        .btn-outline-light {
+            border-width: 2px;
+            font-weight: 500;
+        }
+        
+        .btn-outline-light:hover {
+            background-color: white;
+            color: #375a7f;
+        }
+        
+        @media (max-width: 767px) {
+            .cta-section {
+                padding: 3rem 0;
+            }
+            
+            .cta-section h2 {
+                font-size: 2rem;
+            }
+            
+            .cta-section .btn {
+                width: 100%;
+                margin-bottom: 15px;
+                padding: 10px 20px;
+            }
+            
+            .cta-section .d-flex {
+                flex-direction: column;
+            }
+        }
+        
+        /* Modern Footer Styles */
+        .footer-modern {
+            position: relative;
+        }
+        
+        .footer-top {
+            background-color: #f8f9fa;
+            position: relative;
+        }
+        
+        .footer-bottom {
+            background-color: #e9ecef;
+            font-size: 0.9rem;
+        }
+        
+        .footer-link {
+            color: #555;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .footer-link:hover {
+            color: #375a7f;
+            transform: translateX(5px);
+        }
+        
+        .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            color: #375a7f;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icon:hover {
+            background: linear-gradient(45deg, #375a7f, #6c5ce7);
+            color: white;
+            transform: translateY(-3px);
+        }
+        
+        .footer-bottom-links a {
+            color: #555;
+            text-decoration: none;
+            margin-left: 15px;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-bottom-links a:hover {
+            color: #375a7f;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(45deg, #375a7f, #6c5ce7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        
+        .newsletter .form-control {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px 15px;
+        }
+        
+        /* Stats and Features improvements */
+        .stats-section {
+            position: relative;
+            overflow: hidden;
+            padding: 6rem 0;
+            background-color: #f8f9fa;
+        }
+        
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="2" fill="%23375a7f" opacity="0.1"/></svg>');
+            opacity: 0.3;
+            z-index: 0;
+        }
+        
+        .stat-card {
+            padding: 2.5rem 2rem;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #375a7f, #6c5ce7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .stat-number::after {
+            content: "+";
+            font-size: 1.5rem;
+            position: relative;
+            top: -1rem;
+            right: -5px;
+        }
+        
+        .feature-card {
+            border-radius: 16px;
+            overflow: hidden;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.4s ease;
+            height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px; /* Added spacing for mobile */
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: #6c5ce7;
+        }
+        
+        @media (max-width: 767px) {
+            .feature-card {
+                padding: 15px;
+                margin-bottom: 25px;
+            }
+            
+            .feature-card:hover {
+                transform: translateY(-10px); /* Reduced hover effect on mobile */
+                scale: 1.02;
+            }
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, #375a7f, #6c5ce7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform 0.5s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.2) rotate(5deg);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .hero-section {
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d3436 100%);
+            }
+            
+            .search-box-container {
+                background: rgba(30, 30, 30, 0.8);
+            }
+            
+            .footer-top {
+                background-color: #161616;
+                color: #e0e0e0;
+            }
+            
+            .footer-bottom {
+                background-color: #0d0d0d;
+                color: #999;
+            }
+            
+            .footer-link {
+                color: #bbb;
+            }
+            
+            .footer-link:hover {
+                color: #6c5ce7;
+            }
+            
+            .social-icon {
+                background-color: #2c2c2c;
+                color: #d1d1d1;
+            }
+            
+            .footer-bottom-links a {
+                color: #999;
+            }
+            
+            .newsletter .form-control {
+                background-color: #2c2c2c;
+                border-color: #3a3a3a;
+                color: #e0e0e0;
+            }
+            
+            .stats-section {
+                background-color: #161616;
+            }
+            
+            .stat-card {
+                background-color: rgba(30, 30, 30, 0.5);
+                border-color: rgba(50, 50, 50, 0.3);
+            }
+            
+            .feature-card {
+                background-color: rgba(30, 30, 30, 0.5);
+                border-color: rgba(50, 50, 50, 0.3);
+            }
+            
+            .feature-card:hover {
+                border-color: #6c5ce7;
+            }
+            
+            .stat-number {
+                background: linear-gradient(45deg, #90caf9, #a29bfe);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+        }
+    </style>
+</head>
+<body class="body-font">
+    {% include 'includes/header.html' %}
+
+    <section class="hero-section position-relative overflow-hidden">
+        <!-- 3D Visualization Canvas -->
+        <canvas id="visualization-canvas" class="position-absolute top-0 start-0 w-100 h-100" style="z-index: 0; position: fixed;"></canvas>
+        
+        <div class="container text-center position-relative d-flex flex-column justify-content-center align-items-center h-100" style="z-index: 1;">
+            <h1 class="display-3 mb-4 heading-font fw-bold">Search</h1>
+            <p class="lead mb-5">A modern search engine with AI-powered results and knowledge panels</p>
+            
+            <div class="search-box-container">
+                <form method="POST" action="/search" class="d-flex align-items-center">
+                    <input type="search" name="query" class="form-control border-0 bg-transparent shadow-none flex-grow-1" placeholder="Search for anything...">
+                    <button type="submit" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <section class="features-section py-5">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <span class="badge rounded-pill text-bg-primary px-3 py-2 mb-3">Unique Features</span>
+                <h2 class="heading-font display-5 fw-bold mb-3">Reinventing How You Search</h2>
+                <p class="lead text-muted mx-auto" style="max-width: 700px;">Our powerful search engine combines innovative technology with user-friendly design to deliver a superior search experience.</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4 p-xl-5">
+                            <div class="feature-icon mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922.188.25.25 0 0 0 .073-.495 24 24 0 0 0-1.846-.187.25.25 0 0 0-.18.065l-.842.854-.842-1.7a.25.25 0 0 0-.217-.067zM1.5 7.5A3 3 0 0 1 4.5 4.5h7a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3h-7a3 3 0 0 1-3-3zm3-2a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1z"/>
+                                </svg>
+                            </div>
+                            <h3 class="heading-font h4 mb-3">AI-Powered Answers</h3>
+                            <p class="card-text">Get instant AI-generated responses to your questions, complete with verified sources and comprehensive details.</p>
+                            <div class="mt-4">
+                                <a href="#" class="btn btn-sm btn-outline-primary rounded-pill">Learn more</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4 p-xl-5">
+                            <div class="feature-icon mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-file-text" viewBox="0 0 16 16">
+                                    <path d="M5 4a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5M5 8a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1z"/>
+                                    <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1"/>
+                                </svg>
+                            </div>
+                            <h3 class="heading-font h4 mb-3">Website Summaries</h3>
+                            <p class="card-text">Save time with AI-generated website summaries that give you the key information without having to read entire pages.</p>
+                            <div class="mt-4">
+                                <a href="#" class="btn btn-sm btn-outline-primary rounded-pill">Learn more</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4 p-xl-5">
+                            <div class="feature-icon mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-google" viewBox="0 0 16 16">
+                                    <path d="M15.545 6.558a9.4 9.4 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.7 7.7 0 0 1 5.352 2.082l-2.284 2.284A4.35 4.35 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.8 4.8 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.7 3.7 0 0 0 1.599-2.431H8v-3.08z"/>
+                                </svg>
+                            </div>
+                            <h3 class="heading-font h4 mb-3">Google Integration</h3>
+                            <p class="card-text">Get the best of both worlds with Google's powerful search results integrated seamlessly into our platform.</p>
+                            <div class="mt-4">
+                                <a href="#" class="btn btn-sm btn-outline-primary rounded-pill">Learn more</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4 p-xl-5">
+                            <div class="feature-icon mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                    <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                                </svg>
+                            </div>
+                            <h3 class="heading-font h4 mb-3">Knowledge Panels</h3>
+                            <p class="card-text">Access relevant information from Wikipedia and other trusted sources right in your search results for faster research.</p>
+                            <div class="mt-4">
+                                <a href="#" class="btn btn-sm btn-outline-primary rounded-pill">Learn more</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4 p-xl-5">
+                            <div class="feature-icon mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-lightning-charge" viewBox="0 0 16 16">
+                                    <path d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z"/>
+                                </svg>
+                            </div>
+                            <h3 class="heading-font h4 mb-3">Instant Results</h3>
+                            <p class="card-text">Experience lightning-fast search results with our optimized algorithms and efficient data processing systems.</p>
+                            <div class="mt-4">
+                                <a href="#" class="btn btn-sm btn-outline-primary rounded-pill">Learn more</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100">
+                        <div class="card-body text-center p-4 p-xl-5">
+                            <div class="feature-icon mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-moon-stars" viewBox="0 0 16 16">
+                                    <path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286"/>
+                                    <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/>
+                                </svg>
+                            </div>
+                            <h3 class="heading-font h4 mb-3">Smart Adaptability</h3>
+                            <p class="card-text">Enjoy an eye-friendly interface with dark mode, language detection, and responsive design that adapts to any device.</p>
+                            <div class="mt-4">
+                                <a href="#" class="btn btn-sm btn-outline-primary rounded-pill">Learn more</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section py-5">
+        <div class="container py-5 text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h2 class="heading-font display-4 fw-bold text-white mb-4">Ready to Start Searching?</h2>
+                    <p class="lead text-white mb-5">Experience the difference with Search today. Fast, accurate, and designed for you.</p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="/search" class="btn btn-outline-light btn-lg px-5 py-3">Start Searching</a>
+                        <a href="#" class="btn btn-light btn-lg px-5 py-3">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer-modern">
+        <div class="footer-top py-5">
+            <div class="container">
+                <div class="row g-4">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="footer-brand mb-4">
+                            <h3 class="heading-font gradient-text">Search</h3>
+                        </div>
+                        <p class="mb-4">A modern search engine with AI-powered results and intelligent knowledge panels.</p>
+                        <div class="social-icons d-flex gap-3">
+                            <a href="#" class="social-icon" aria-label="Twitter">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-twitter-x" viewBox="0 0 16 16">
+                                    <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-icon" aria-label="LinkedIn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-linkedin" viewBox="0 0 16 16">
+                                    <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.934c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-icon" aria-label="GitHub">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+                                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <h4 class="heading-font mb-4">Quick Links</h4>
+                        <ul class="footer-links list-unstyled">
+                            <li><a href="/search" class="footer-link">Search</a></li>
+                            <li><a href="/settings" class="footer-link">Settings</a></li>
+                            <li><a href="#" class="footer-link">About Us</a></li>
+                            <li><a href="#" class="footer-link">Privacy Policy</a></li>
+                            <li><a href="#" class="footer-link">Terms of Service</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <h4 class="heading-font mb-4">Features</h4>
+                        <ul class="footer-links list-unstyled">
+                            <li><a href="#" class="footer-link">AI-Powered Search</a></li>
+                            <li><a href="#" class="footer-link">Knowledge Panels</a></li>
+                            <li><a href="#" class="footer-link">Dark Mode</a></li>
+                            <li><a href="#" class="footer-link">Instant Results</a></li>
+                            <li><a href="#" class="footer-link">Language Detection</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <h4 class="heading-font mb-4">Contact Us</h4>
+                        <ul class="contact-info list-unstyled">
+                            <li class="d-flex mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-envelope me-3 flex-shrink-0" viewBox="0 0 16 16">
+                                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
+                                </svg>
+                                <span>info@schachnersearch.com</span>
+                            </li>
+                            <li class="d-flex mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-geo-alt me-3 flex-shrink-0" viewBox="0 0 16 16">
+                                    <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10"/>
+                                    <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
+                                </svg>
+                                <span>Munich, Germany</span>
+                            </li>
+                            <li class="newsletter mt-4">
+                                <form class="d-flex gap-2">
+                                    <input type="email" class="form-control" placeholder="Your email">
+                                    <button type="submit" class="btn btn-primary btn-sm">Subscribe</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom py-4">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p class="copyright mb-0">&copy; 2025 Search. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="footer-bottom-links list-inline mb-0 text-md-end">
+                            <li class="list-inline-item"><a href="#">Privacy</a></li>
+                            <li class="list-inline-item"><a href="#">Terms</a></li>
+                            <li class="list-inline-item"><a href="#">Cookies</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 3D Visualization Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the 3D visualization
+            initVisualization();
+        });
+
+        function initVisualization() {
+            const canvas = document.getElementById('visualization-canvas');
+            
+            // Skip visualization if canvas doesn't exist
+            if (!canvas) return;
+            
+            // Create Three.js scene
+            const scene = new THREE.Scene();
+            
+            // Create camera
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 30;
+            
+            // Create WebGL renderer
+            const renderer = new THREE.WebGLRenderer({
+                canvas: canvas,
+                alpha: true,
+                antialias: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            
+            // Create a group to hold all objects
+            const group = new THREE.Group();
+            scene.add(group);
+            
+            // Add ambient light
+            const ambientLight = new THREE.AmbientLight(0xcccccc, 0.4);
+            scene.add(ambientLight);
+            
+            // Add directional light
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            // Colors for nodes
+            const colors = [
+                0x375a7f, // Primary blue
+                0x6c5ce7, // Purple
+                0x00a8ff, // Light blue
+                0x4834d4  // Deep blue
+            ];
+            
+            // Create abstract connection nodes
+            const nodes = [];
+            const nodeCount = 20;
+            const nodeGeometry = new THREE.IcosahedronGeometry(1, 0);
+            
+            for (let i = 0; i < nodeCount; i++) {
+                // Create node with random size
+                const scale = 0.2 + Math.random() * 0.8;
+                const node = new THREE.Mesh(
+                    nodeGeometry,
+                    new THREE.MeshPhongMaterial({
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        transparent: true,
+                        opacity: 0.85,
+                        flatShading: true,
+                    })
+                );
+                
+                // Set random position
+                node.position.x = (Math.random() - 0.5) * 60;
+                node.position.y = (Math.random() - 0.5) * 40;
+                node.position.z = (Math.random() - 0.5) * 30;
+                
+                // Set random size
+                node.scale.set(scale, scale, scale);
+                
+                // Set properties for animation
+                node.userData = {
+                    speed: 0.01 + Math.random() * 0.02,
+                    rotationSpeed: 0.01 + Math.random() * 0.03,
+                    direction: Math.random() > 0.5 ? 1 : -1
+                };
+                
+                // Add to the group
+                group.add(node);
+                nodes.push(node);
+            }
+            
+            // Create connections between nodes (lines)
+            const connections = [];
+            const maxDistance = 15; // Maximum distance for connections
+            const linesMaterial = new THREE.LineBasicMaterial({
+                color: 0xaaaaaa,
+                transparent: true,
+                opacity: 0.3
+            });
+            
+            for (let i = 0; i < nodes.length; i++) {
+                const nodeA = nodes[i];
+                
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const nodeB = nodes[j];
+                    
+                    // Calculate distance between nodes
+                    const distance = nodeA.position.distanceTo(nodeB.position);
+                    
+                    // If close enough, create a connection
+                    if (distance < maxDistance) {
+                        const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                            nodeA.position,
+                            nodeB.position
+                        ]);
+                        const line = new THREE.Line(lineGeometry, linesMaterial);
+                        
+                        // Store references to connected nodes
+                        line.userData = {
+                            nodeA: nodeA,
+                            nodeB: nodeB
+                        };
+                        
+                        group.add(line);
+                        connections.push(line);
+                    }
+                }
+            }
+            
+            // Function to handle window resize
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+            
+            window.addEventListener('resize', onWindowResize);
+            
+            // Mouse interaction
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetRotationX = 0;
+            let targetRotationY = 0;
+            
+            function onDocumentMouseMove(event) {
+                mouseX = (event.clientX - window.innerWidth / 2) / 100;
+                mouseY = (event.clientY - window.innerHeight / 2) / 100;
+                
+                targetRotationX = mouseY * 0.05;
+                targetRotationY = mouseX * 0.05;
+            }
+            
+            document.addEventListener('mousemove', onDocumentMouseMove, false);
+            
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Rotate group based on mouse position
+                group.rotation.y += (targetRotationY - group.rotation.y) * 0.02;
+                group.rotation.x += (targetRotationX - group.rotation.x) * 0.02;
+                
+                // Animate nodes
+                nodes.forEach(node => {
+                    node.rotation.x += 0.01 * node.userData.rotationSpeed;
+                    node.rotation.y += 0.01 * node.userData.rotationSpeed * node.userData.direction;
+                });
+                
+                // Update connections
+                connections.forEach(line => {
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                        line.userData.nodeA.position,
+                        line.userData.nodeB.position
+                    ]);
+                    line.geometry.dispose();
+                    line.geometry = lineGeometry;
+                });
+                
+                renderer.render(scene, camera);
+            }
+            
+            // Start animation
+            animate();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!-- Search results component -->
+<div class="search-results-column">
+    <ul class="list-group">
+        {% if results %}
+            {% for result in results %}
+                <li class="list-group-item result-item" data-url="{{ result.url }}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="flex-grow-1 ms-3">
+                            {% if result.title %}
+                                <a href="{{ result.url }}" target="_blank">
+                                    <!-- Favicon with lazy loading -->
+                                    <img class="fav-icon" data-url="{{ result.url }}" alt="Favicon" loading="lazy" style="width:16px;height:16px;margin-right:5px;display:none;">
+                                    {{ result.title }}
+                                    {% if 'source' in result and result.source == 'google' %}
+                                        <span class="badge bg-primary ms-2">Google</span>
+                                    {% endif %}
+                                </a>
+                            {% else %}
+                                <a href="{{ result.url }}" target="_blank"><em>No title available</em></a>
+                            {% endif %}
+                            <p class="url">{{ result.url }}</p>
+                            {% if result.description %}
+                                <p class="mt-2">{{ result.description }}</p>
+                            {% else %}
+                                <p class="mt-2"><em>No description available</em></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- Preview tooltip container -->
+                    <div class="preview-tooltip">
+                        <div class="preview-loading">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                            <span>Loading preview...</span>
+                        </div>
+                        <div class="preview-content" style="display: none;"></div>
+                        <div class="preview-error" style="display: none;">Preview could not be loaded</div>
+                    </div>
+                </li>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                No results found for your search query. Please try different keywords.
+            </div>
+        {% endif %}
+    </ul>
+    
+    <!-- Pagination navigation -->
+    {% if total_results > per_page %}
+    <nav aria-label="Search results pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <!-- Previous page -->
+            {% if page > 1 %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search', query=query, original_query=original_query, type=request.args.get('type', ''), lang=request.args.get('lang', ''), page=page-1) }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link" aria-hidden="true">&laquo;</span>
+            </li>
+            {% endif %}
+            
+            <!-- Page numbers -->
+            {% set pages = ((total_results / per_page)|round(0, 'ceil'))|int %}
+            {% set max_visible_pages = 5 %}
+            {% set start_page = [1, page - (max_visible_pages//2)]|max %}
+            {% set end_page = [pages, start_page + max_visible_pages - 1]|min %}
+            {% set start_page = [1, end_page - max_visible_pages + 1]|max %}
+            
+            {% if start_page > 1 %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search', query=query, original_query=original_query, type=request.args.get('type', ''), lang=request.args.get('lang', ''), page=1) }}">1</a>
+            </li>
+            {% if start_page > 2 %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% endif %}
+            {% endif %}
+            
+            {% for p in range(start_page, end_page + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('search', query=query, original_query=original_query, type=request.args.get('type', ''), lang=request.args.get('lang', ''), page=p) }}">{{ p }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if end_page < pages %}
+            {% if end_page < pages - 1 %}
+            <li class="page-item disabled">
+                <span class="page-link">...</span>
+            </li>
+            {% endif %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search', query=query, original_query=original_query, type=request.args.get('type', ''), lang=request.args.get('lang', ''), page=pages) }}">{{ pages }}</a>
+            </li>
+            {% endif %}
+            
+            <!-- Next page -->
+            {% if page < pages %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('search', query=query, original_query=original_query, type=request.args.get('type', ''), lang=request.args.get('lang', ''), page=page+1) }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link" aria-hidden="true">&raquo;</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>

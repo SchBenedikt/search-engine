@@ -3,6 +3,48 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
+/* Knowledge panel styling to match search results */
+.knowledge-panel {
+    background-color: transparent;
+    border-radius: 0.25rem;
+    padding: 0;
+    margin-bottom: 20px;
+}
+
+.knowledge-panel-column .knowledge-panel {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 0.25rem;
+    padding: 16px;
+    background-color: #fff; /* Match list-group-item background */
+}
+
+.knowledge-panel img {
+    max-width: 100%;
+    border-radius: 0.25rem;
+    margin-bottom: 15px;
+}
+
+.knowledge-panel h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.25rem;
+    font-weight: 500;
+}
+
+.knowledge-panel p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #212529; /* Match search results text color */
+    margin-bottom: 15px;
+}
+
+.knowledge-panel .source {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 15px;
+    display: block;
+}
+
 .hero {
     background: #f5f5f5;
     border-radius: 8px;
@@ -91,5 +133,100 @@ body {
         background-color: #1e1e1e;
         color: #ffffff;
         border-color: #333;
+    }
+    
+    /* Dark mode styling for knowledge panel */
+    .knowledge-panel {
+        background-color: transparent;
+        color: #e0e0e0;
+    }
+    
+    .knowledge-panel-column .knowledge-panel {
+        background-color: #1e1e1e;
+        border-color: #333;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+    
+    /* Ensure text in knowledge panel is readable in dark mode */
+    .knowledge-panel p, 
+    .knowledge-panel h3 {
+        color: #e0e0e0;
+    }
+    
+    /* Dark mode styling for AI response */
+    .ai-response {
+        background-color: #1e1e1e !important;
+        color: #e0e0e0 !important;
+        border-color: #333 !important;
+    }
+    
+    .alert-primary {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border-color: #333;
+    }
+    
+    /* Dark mode styling for code blocks in markdown */
+    .markdown-body pre {
+        background-color: #2d2d2d;
+        color: #e0e0e0;
+        border: 1px solid #444;
+    }
+    
+    .markdown-body code {
+        background-color: #2d2d2d;
+        color: #e0e0e0;
+    }
+    
+    /* Dark mode styling for pagination */
+    .pagination .page-link {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border-color: #333;
+    }
+    
+    .pagination .page-item.active .page-link {
+        background-color: #375a7f;
+        border-color: #375a7f;
+    }
+    
+    .pagination .page-item.disabled .page-link {
+        background-color: #1e1e1e;
+        color: #555;
+        border-color: #333;
+    }
+    
+    /* Dark mode styling for buttons */
+    .btn-outline-primary {
+        color: #90caf9;
+        border-color: #90caf9;
+    }
+    
+    .btn-outline-primary:hover {
+        background-color: #375a7f;
+        color: #ffffff;
+        border-color: #375a7f;
+    }
+    
+    /* Dark mode styling for modals */
+    .modal-content {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border-color: #333;
+    }
+    
+    .modal-header, .modal-footer {
+        border-color: #333;
+    }
+    
+    /* Dark mode styling for loading indicators */
+    .spinner-border {
+        border-color: #e0e0e0;
+        border-right-color: transparent;
+    }
+    
+    /* Fix for toast close buttons */
+    .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
     }
 }

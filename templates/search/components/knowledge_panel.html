@@ -1,0 +1,39 @@
+<!-- Knowledge Panel Component -->
+{% if knowledge_panel %}
+<div class="knowledge-panel-column">
+    <div class="knowledge-panel">
+        <h3>{{ knowledge_panel.title }}</h3>
+        
+        {% if knowledge_panel.image_url %}
+        <img src="{{ knowledge_panel.image_url }}" alt="{{ knowledge_panel.title }}" class="img-fluid">
+        {% endif %}
+        
+        <p>{{ knowledge_panel.summary }}</p>
+        
+        {% if request.args.get('lang', '').startswith('de') %}
+            {% set wiki_lang = 'de' %}
+            {% set wiki_url = 'https://de.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
+            <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Mehr auf Wikipedia lesen</a>
+            <span class="source">Quelle: Wikipedia</span>
+        {% elif request.args.get('lang', '').startswith('fr') %}
+            {% set wiki_lang = 'fr' %}
+            {% set wiki_url = 'https://fr.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
+            <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Lire plus sur Wikipédia</a>
+            <span class="source">Source: Wikipédia</span>
+        {% elif request.args.get('lang', '').startswith('es') %}
+            {% set wiki_lang = 'es' %}
+            {% set wiki_url = 'https://es.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
+            <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Leer más en Wikipedia</a>
+            <span class="source">Fuente: Wikipedia</span>
+        {% elif request.args.get('lang', '').startswith('it') %}
+            {% set wiki_lang = 'it' %}
+            {% set wiki_url = 'https://it.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
+            <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Ulteriori informazioni su Wikipedia</a>
+            <span class="source">Fonte: Wikipedia</span>
+        {% else %}
+            <a href="{{ knowledge_panel.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Read more on Wikipedia</a>
+            <span class="source">Source: Wikipedia</span>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
