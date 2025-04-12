@@ -1,6 +1,8 @@
 # 🚀 Search Engine 
 The matching search engine to my [web crawler](https://github.com/SchBenedikt/web-crawler).
 
+![Search · 4 31pm · 04-12](https://github.com/user-attachments/assets/88c0138a-77c5-440e-a1ce-ae4f583843a5)
+
 ## ✨ Features 
 - 🌐 **Modern 3D Interactive Landing Page** with full-screen visualizations that dynamically adapt to different screen sizes 
 - 🤖 **AI-Powered Answers** providing instant responses with verified sources 
@@ -13,6 +15,7 @@ The matching search engine to my [web crawler](https://github.com/SchBenedikt/we
 - 🗄️ **MongoDB Backend** for efficient data operations 
 
 ## 📄 Detailed Feature Overview 
+![Capture-2025-04-12-163138](https://github.com/user-attachments/assets/b70ec5c0-a7ea-4c12-8618-42e6ee9afc5a)
 
 ### 🌐 Modern 3D Landing Page 
 The search engine features a stunning 3D visualization on the landing page created with Three.js. The visualization creates an immersive experience with:
@@ -24,6 +27,7 @@ The search engine leverages AI for multiple features:
 - 💡 **Smart Answers**: Get direct answers to questions without needing to visit multiple websites 
 - 📝 **Content Summaries**: AI-generated summaries of web pages to quickly understand their content 
 - 🔍 **Query Understanding**: Intelligent parsing of search queries to deliver more relevant results 
+![Search](https://github.com/user-attachments/assets/4070ed36-128f-44b1-83f2-06796344a3fb)
 
 ### 📚 Knowledge Panels 
 Knowledge panels provide quick access to key information about searched topics:
@@ -60,10 +64,10 @@ docker build -t ghcr.io/schbenedikt/search-engine:latest .
 To run the Docker container, use the following command:
 
 ```sh
-docker run -p 5560:5560 ghcr.io/schbenedikt/search-engine:latest
+docker run -p 5555:5555 ghcr.io/schbenedikt/search-engine:latest
 ```
 
-This will start the Flask application using Gunicorn as the WSGI server, and it will be accessible at `http://localhost:5560`.
+This will start the Flask application using Gunicorn as the WSGI server, and it will be accessible at `http://localhost:5555`.
 
 ### 📥 Pulling the Docker Image 
 
@@ -84,7 +88,7 @@ To run both the search engine and MongoDB containers using Docker Compose, use t
 docker-compose up
 ```
 
-This will start both containers and the Flask application will be accessible at `http://localhost:5560`.
+This will start both containers and the Flask application will be accessible at `http://localhost:5555`.
 
 ### 📄 Docker Compose File 
 
@@ -99,7 +103,7 @@ services:
     depends_on:
       - mongodb
     ports:
-      - "5560:5560"
+      - "5555:5555"
 
   mongodb:
     image: mongo:latest
@@ -129,31 +133,7 @@ The `db_config.json` file is used to store the database configuration. Here is a
 
 ### ⚙️ Settings Page 
 
-The `settings.html` file has been updated to include fields for username and password. You can access the settings page at `http://localhost:5560/settings` to update the database configuration.
-
-## 🌐 Making MongoDB Accessible from the Internet 
-
-### 🌐 Using fritz.box for Port Forwarding 
-
-1. Log in to your fritz.box router by entering `http://fritz.box` in your web browser.
-2. Navigate to the "Internet" section and then to "Permit Access".
-3. Click on "Add Device for Sharing".
-4. Select the device running MongoDB from the list.
-5. Set the application to "Other Application" and enter the following details:
-   - Protocol: TCP
-   - From port: 27017
-   - To port: 27017
-6. Click "OK" to save the settings.
-
-### 🌐 Using Cloudflare Tunnel 
-
-1. Sign up for a Cloudflare account if you don't have one.
-2. Go to the "Zero Trust" dashboard in Cloudflare.
-3. Navigate to "Access" and then to "Tunnels".
-4. Click on "Create a Tunnel".
-5. Follow the instructions to install the Cloudflare Tunnel client on your server.
-6. Create a new tunnel and configure it to forward traffic to your MongoDB instance on port 27017.
-7. Update your MongoDB connection URL to use the Cloudflare Tunnel endpoint.
+The `settings.html` file has been updated to include fields for username and password. You can access the settings page at `http://localhost:5555/settings` to update the database configuration.
 
 ## 🛠️ Installation and Setup 
 
@@ -190,10 +170,10 @@ The `settings.html` file has been updated to include fields for username and pas
 
 5. Start the application
    ```sh
-   python app.py
+   python3 app.py
    ```
 
-6. Open your browser and navigate to `http://localhost:5560`
+6. Open your browser and navigate to `http://localhost:5555`
 
 ## 📖 Usage Guide 
 
@@ -208,42 +188,7 @@ The `settings.html` file has been updated to include fields for username and pas
 - **Dark Mode**: Toggle dark mode in the settings or let it automatically adjust based on your system preferences
 - **Settings Customization**: Visit the settings page to customize your search experience
 
-## 🛠️ Troubleshooting 
-
-### 🔧 Common Issues and Solutions 
-
-#### ❌ Connection to MongoDB Failed 
-- Verify MongoDB is running: `mongod --version`
-- Check your MongoDB connection string in `db_config.json`
-- Ensure network connectivity if using a remote MongoDB instance
-- Verify firewall settings allow connections on port 27017
-
-#### ❌ 3D Visualization Not Working 
-- Ensure your browser supports WebGL (check at [WebGL Report](https://webglreport.com))
-- Update your graphics drivers
-- Try disabling hardware acceleration in your browser settings
-
-#### ❌ Search Results Not Loading 
-- Check your internet connection
-- Verify API keys for external services (if applicable)
-- Clear browser cache and cookies
 
 ## 🤝 Contributing 
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add some amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-## 📄 License 
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments 
-- Three.js for 3D visualization capabilities
-- MongoDB for database support
-- Flask for the web framework
-- Bootstrap for responsive UI components
