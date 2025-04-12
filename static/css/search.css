@@ -83,7 +83,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     box-shadow: 0 5px 20px rgba(0,0,0,0.2);
     padding: 15px;
     opacity: 0;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, background-color 0.3s;
     max-height: 400px;
     overflow-y: auto;
     pointer-events: none; /* Allow clicking through the tooltip */
@@ -337,5 +337,63 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     
     .search-engines-container {
         justify-content: center;
+    }
+}
+
+/* Dark Mode Styles */
+@media (prefers-color-scheme: dark) {
+    /* Website summaries and AI responses */
+    .ai-response {
+        background-color: #1a1a1a !important;
+        color: #e0e0e0 !important;
+        border-color: #2d2d2d !important;
+    }
+    
+    .alert-primary {
+        background-color: #1a1a1a;
+        color: #e0e0e0;
+        border-color: #2d2d2d;
+    }
+    
+    /* Preview tooltips for hover states */
+    .preview-tooltip {
+        background-color: #1a1a1a;
+        border-color: #2d2d2d;
+        color: #e0e0e0;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    }
+    
+    /* Search elsewhere styles in dark mode */
+    .search-elsewhere-container {
+        background-color: #1a1a1a;
+        border-color: #2d2d2d;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    
+    .search-engine-card {
+        background-color: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #444;
+    }
+    
+    .search-engine-card:hover {
+        border-color: #6c5ce7;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    }
+    
+    .search-engine-logo {
+        background-color: #3a3a3a;
+    }
+    
+    /* Markdown content within the preview tooltips and AI responses */
+    .markdown-body {
+        color: #e0e0e0;
+        background-color: transparent;
+    }
+    
+    /* Code blocks in markdown content */
+    .markdown-body code {
+        background-color: #2d2d2d;
+        color: #e0e0e0;
     }
 }

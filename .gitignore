@@ -1,2 +1,4 @@
 .vscode/settings.json
 __pycache__/semantic_search.cpython-312.pyc
+.env
+.env

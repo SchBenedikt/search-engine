@@ -52,7 +52,8 @@ def generate_ai_response(query):
         ]
         
         # Define default system instruction for the AI
-        default_system_instruction = f"Bitte antworte in {request.args.get('lang')}. Zeige Quellen, wenn du im Internet suchst. Du bist ein Assitant für eine Suchmaschine und zeigst bei einer Anfrage so viele Informationen wie möglich"
+        lang = request.args.get('lang', 'de-DE')  # Default to German if not specified
+        default_system_instruction = f"Bitte antworte in {lang}. Zeige Quellen, wenn du im Internet suchst. Du bist ein Assitant für eine Suchmaschine und zeigst bei einer Anfrage so viele Informationen wie möglich"
         
         # Get custom system instruction from query if present (format: #system:instruction)
         system_instruction = default_system_instruction
@@ -201,6 +202,62 @@ def get_type_synonyms():
             return json.load(f)
     except Exception:
         return {}
+
+# New functions for the .env file
+def get_env_variables():
+    """Reads values from the .env file"""
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    env_vars = {}
+    
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, value = line.split('=', 1)
+                    env_vars[key.strip()] = value.strip()
+    
+    return env_vars
+
+def update_env_file(updates):
+    """Updates the .env file with new values"""
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+    
+    # Read current environment variables from the file
+    current_env = []
+    if os.path.exists(env_path):
+        with open(env_path, 'r') as f:
+            current_env = f.readlines()
+    
+    # Create a map for easy access to current values
+    updated_lines = []
+    updated_keys = set()
+    
+    # Update existing lines
+    for line in current_env:
+        line = line.rstrip('\n')
+        # Keep comments and empty lines
+        if not line or line.startswith('#'):
+            updated_lines.append(line)
+            continue
+            
+        if '=' in line:
+            key = line.split('=', 1)[0].strip()
+            if key in updates:
+                updated_lines.append(f"{key}={updates[key]}")
+                updated_keys.add(key)
+            else:
+                updated_lines.append(line)
+    
+    # Add new values that are not already in the file
+    for key, value in updates.items():
+        if key not in updated_keys:
+            updated_lines.append(f"{key}={value}")
+    
+    # Write the file back with updated values
+    with open(env_path, 'w') as f:
+        for line in updated_lines:
+            f.write(line + '\n')
 
 # Neue Funktion zur URL-Normalisierung
 def normalize_url(url):
@@ -671,8 +728,16 @@ def test_preprocess():
 @app.route('/settings', methods=['GET'])
 def settings():
     type_synonyms = get_type_synonyms()
-    # Übergibt die Synonyme als formatierten JSON-String an das Template
-    return render_template('settings.html', type_synonyms=json.dumps(type_synonyms, indent=2))
+    # API-Konfigurationen aus der .env-Datei lesen
+    env_vars = get_env_variables()
+    
+    # Übergibt die Synonyme und API-Konfigurationen an das Template
+    return render_template('settings.html', 
+                           type_synonyms=json.dumps(type_synonyms, indent=2),
+                           google_api_key=env_vars.get('GOOGLE_API_KEY', ''),
+                           google_cx=env_vars.get('GOOGLE_CX', ''),
+                           gemini_api_key=env_vars.get('GEMINI_API_KEY', ''),
+                           results_per_page=os.environ.get('RESULTS_PER_PAGE', '10'))
 
 @app.route('/save-settings', methods=['POST'])
 def save_settings():
@@ -681,23 +746,53 @@ def save_settings():
     db_name = data.get('db_name', 'search_engine')
     db_username = data.get('db_username')
     db_password = data.get('db_password')
-    # Speichern der Typ-Synonyme, wenn vorhanden
+    
+    # Extract API configurations from form data
+    google_api_key = data.get('google_api_key', '')
+    google_cx = data.get('google_cx', '')
+    gemini_api_key = data.get('gemini_api_key', '')
+    results_per_page = data.get('results_per_page', '10')
+    
+    # Save type synonyms if provided
     type_synonyms = data.get('type_synonyms')
     if type_synonyms:
         try:
-            # Erwartet einen gültigen JSON-String
+            # Expects a valid JSON string
             parsed = json.loads(type_synonyms)
             with open('type_synonyms.json', 'w') as f:
                 json.dump(parsed, f)
         except Exception as e:
             print(f"Error saving type synonyms: {e}")
-            return jsonify({'success': False, 'message': 'Fehler beim Speichern der Type Synonyms'})
+            return jsonify({'success': False, 'message': 'Error saving type synonyms'})
+    
+    # Save API configurations to .env file
+    try:
+        env_updates = {}
+        if google_api_key:
+            env_updates['GOOGLE_API_KEY'] = google_api_key
+        if google_cx:
+            env_updates['GOOGLE_CX'] = google_cx
+        if gemini_api_key:
+            env_updates['GEMINI_API_KEY'] = gemini_api_key
+        if results_per_page:
+            env_updates['RESULTS_PER_PAGE'] = results_per_page
+        
+        # Update .env file
+        if env_updates:
+            update_env_file(env_updates)
+            # Update current environment variables
+            for key, value in env_updates.items():
+                os.environ[key] = value
+    except Exception as e:
+        print(f"Error saving .env file: {e}")
+        return jsonify({'success': False, 'message': f'Error saving .env file: {str(e)}'})
+            
     if db_url:
         connections = get_db_config()
         connections.append({'url': db_url, 'name': db_name, 'username': db_username, 'password': db_password})
         save_db_config(connections)
         return jsonify({'success': True})
-    return jsonify({'success': False})
+    return jsonify({'success': True})
 
 @app.route('/get-db-connections', methods=['GET'])
 def get_db_connections():
@@ -874,7 +969,7 @@ def get_ai_response():
                 short_response = short_response[:150] + '...'
         
         # Create HTML for the response with sources
-        ai_response_html = f'<div class="alert alert-primary mb-4 ai-response">'
+        ai_response_html = f'<div class="alert alert-primary mb-4 ai-response" style="background-color: #000; color: #fff; border-color: #000;">'
         ai_response_html += f'<h5 class="alert-heading">AI Response:</h5>'
         ai_response_html += f'<div class="ai-response-preview markdown-body mb-2">{short_response}</div>'
         ai_response_html += f'<div class="ai-response-full markdown-body mb-2" style="display:none;">{ai_response}</div>'

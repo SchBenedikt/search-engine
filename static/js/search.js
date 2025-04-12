@@ -41,6 +41,7 @@ function likeResult(url) {
     .catch(error => {
         console.error('Error:', error);
         alert('An error occurred.');
+    });
 }
 
 /**
@@ -93,7 +94,7 @@ function initializeAIResponse() {
     if (!aiResponseUrl) return;
 
     const aiResponseContainer = document.getElementById('ai-response-container');
-    aiResponseContainer.innerHTML = '<div class="alert alert-light mb-4"><div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"><span class="visually-hidden">Loading...</span></div><span>Generating AI response...</span></div></div>';
+    aiResponseContainer.innerHTML = '<div class="alert alert-primary mb-4" ><div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm text-primary me-2" role="status"><span class="visually-hidden">Loading...</span></div><span>Generating AI response...</span></div></div>';
     
     // Fetch the AI response after page load
     fetch(aiResponseUrl)
