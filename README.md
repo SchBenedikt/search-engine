@@ -49,6 +49,10 @@ The search interface is designed for maximum usability:
 - 🌐 Three.js for 3D visualizations 
 - 🌙 Dark mode implementation with CSS variables and prefers-color-scheme media queries 
 
+
+![image](https://github.com/user-attachments/assets/bd1646eb-cece-4a97-9993-8c3ae4ce90f2)
+
+
 ## 🐳 Docker Instructions 
 
 ### 🛠️ Building the Docker Image 
