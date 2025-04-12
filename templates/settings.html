@@ -31,14 +31,68 @@
                 color: #ffffff;
                 border-color: #333;
             }
-            /* New: Ensure placeholder text is white */
+            /* Ensure placeholder text is visible */
             .form-control::placeholder {
-                color: #ffffff;
+                color: #aaaaaa;
                 opacity: 1;
             }
             textarea.form-control::placeholder {
-                color: #ffffff;
+                color: #aaaaaa;
                 opacity: 1;
+            }
+            /* Card styling for dark mode */
+            .card {
+                background-color: #1e1e1e;
+                border-color: #333;
+            }
+            .card-header {
+                background-color: #2d2d2d;
+                border-bottom-color: #333;
+                color: #e0e0e0;
+            }
+            /* Button styling for dark mode */
+            .btn-primary {
+                background-color: #375a7f;
+                border-color: #375a7f;
+            }
+            .btn-primary:hover, .btn-primary:focus {
+                background-color: #2d4764;
+                border-color: #2d4764;
+            }
+            .btn-outline-primary {
+                color: #6c5ce7;
+                border-color: #6c5ce7;
+            }
+            .btn-outline-primary:hover, .btn-outline-primary:focus {
+                background-color: #6c5ce7;
+                color: #ffffff;
+            }
+            .btn-danger {
+                background-color: #e74c3c;
+                border-color: #e74c3c;
+            }
+            .btn-danger:hover, .btn-danger:focus {
+                background-color: #c0392b;
+                border-color: #c0392b;
+            }
+            /* List group styling */
+            .list-group-item {
+                background-color: #2d2d2d;
+                border-color: #333;
+                color: #e0e0e0;
+            }
+            /* Text muted for dark mode */
+            .text-muted, .form-text {
+                color: #aaaaaa !important;
+            }
+            /* Form labels in dark mode */
+            .form-label {
+                color: #e0e0e0;
+                font-weight: 500;
+            }
+            /* Tooltip icon color */
+            .bi-info-circle {
+                color: #6c5ce7;
             }
         }
     </style>
