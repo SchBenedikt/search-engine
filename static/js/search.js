@@ -40,8 +40,7 @@ function likeResult(url) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Ein Fehler ist aufgetreten.');
-    });
+        alert('An error occurred.');
 }
 
 /**
