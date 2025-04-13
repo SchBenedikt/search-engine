@@ -68,10 +68,10 @@ docker build -t ghcr.io/schbenedikt/search-engine:latest .
 To run the Docker container, use the following command:
 
 ```sh
-docker run -p 5555:5555 ghcr.io/schbenedikt/search-engine:latest
+docker run -p : ghcr.io/schbenedikt/search-engine:latest
 ```
 
-This will start the Flask application using Gunicorn as the WSGI server, and it will be accessible at `http://localhost:5555`.
+This will start the Flask application using Gunicorn as the WSGI server, and it will be accessible at `http://localhost:`.
 
 ### 📥 Pulling the Docker Image 
 
@@ -92,7 +92,7 @@ To run both the search engine and MongoDB containers using Docker Compose, use t
 docker-compose up
 ```
 
-This will start both containers and the Flask application will be accessible at `http://localhost:5555`.
+This will start both containers and the Flask application will be accessible at `http://localhost:`.
 
 ### 📄 Docker Compose File 
 
@@ -107,7 +107,7 @@ services:
     depends_on:
       - mongodb
     ports:
-      - "5555:5555"
+      - "5560:5560"
 
   mongodb:
     image: mongo:latest
@@ -137,7 +137,7 @@ The `db_config.json` file is used to store the database configuration. Here is a
 
 ### ⚙️ Settings Page 
 
-The `settings.html` file has been updated to include fields for username and password. You can access the settings page at `http://localhost:5555/settings` to update the database configuration.
+The `settings.html` file has been updated to include fields for username and password. You can access the settings page at `http://localhost:5560/settings` to update the database configuration.
 
 ## 🛠️ Installation and Setup 
 
@@ -177,7 +177,7 @@ The `settings.html` file has been updated to include fields for username and pas
    python3 app.py
    ```
 
-6. Open your browser and navigate to `http://localhost:5555`
+6. Open your browser and navigate to `http://localhost:5560`
 
 ## 📖 Usage Guide 
 
