@@ -310,9 +310,9 @@ def normalize_url(url):
 
 # Function to fetch search results from Google Custom Search API
 def fetch_google_results(query):
-    # Explicitly set the correct values to ensure they're not swapped
-    api_key = 'AIzaSyAHrHt3Zc3YXof5R8kkx3xun9CAkwqM_jY'  # Correct API key from .env
-    cx = 'c01b5677e81ae4f00'  # Correct CX from .env
+    # Get API key and CX from environment variables
+    api_key = os.environ.get('GOOGLE_API_KEY')
+    cx = os.environ.get('GOOGLE_CX')
     if not api_key or not cx:
         logging.error('Google API key or CX is not set.')
         return []
@@ -969,7 +969,7 @@ def get_ai_response():
                 short_response = short_response[:150] + '...'
         
         # Create HTML for the response with sources
-        ai_response_html = f'<div class="alert alert-primary mb-4 ai-response" style="background-color: #000; color: #fff; border-color: #000;">'
+        ai_response_html = f'<div class="alert alert-primary mb-4 ai-response">'
         ai_response_html += f'<h5 class="alert-heading">AI Response:</h5>'
         ai_response_html += f'<div class="ai-response-preview markdown-body mb-2">{short_response}</div>'
         ai_response_html += f'<div class="ai-response-full markdown-body mb-2" style="display:none;">{ai_response}</div>'
@@ -1113,6 +1113,6 @@ def get_page_summary():
         })
 
 if __name__ == '__main__':
-    app.run(port=5555)
+    app.run(port=5560)
 if __name__ != '__main__':
     app = app
