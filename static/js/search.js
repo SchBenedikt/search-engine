@@ -126,3 +126,13 @@ function renderMarkdown() {
         element.innerHTML = marked.parse(markdownContent);
     });
 }
+
+/**
+ * Open website in a popup modal
+ */
+function openWebsiteInPopup(url) {
+    const iframe = document.getElementById('website-popup-iframe');
+    iframe.src = url;
+    const modal = new bootstrap.Modal(document.getElementById('website-popup-modal'));
+    modal.show();
+}
