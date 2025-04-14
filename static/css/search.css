@@ -280,67 +280,40 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     font-weight: 500;
 }
 
-/* Responsive styles */
-@media (max-width: 992px) {
-    .search-results-column, 
-    .knowledge-panel-column {
-        flex: 0 0 100%;
-        padding-right: 0;
-    }
-    
-    .knowledge-panel-column {
-        position: static;
-        order: -1;
-    }
+/* Styles for related search terms */
+.related-search-panel {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 20px;
+    border: 1px solid #e9ecef;
 }
 
-/* Improvements for mobile view */
-@media (max-width: 768px) {
-    .navbar-brand {
-        flex-grow: 1; /* Fill available space */
-        text-align: center; /* Center the text */
-    }
-    
-    .navbar-nav {
-        flex-direction: column; /* Arrange elements vertically */
-    }
-    
-    .nav-item {
-        width: 100%; /* Full width for each element */
-        text-align: center; /* Center the text */
-    }
-    
-    .navbar-toggler {
-        order: -1; /* Move toggler to the start */
-    }
-    
-    .empty-placeholder {
-        height: 56px; /* Placeholder height matches navbar height */
-    }
-    
-    .col-md-4 {
-        width: 100%; /* Full width on mobile devices */
-        padding-left: 0;
-        padding-right: 0;
-    }
-    
-    .card-columns {
-        column-count: 1; /* One column on mobile devices */
-    }
-    
-    /* Knowledge panel full width on mobile */
-    .knowledge-panel {
-        position: static;
-        width: 100%;
-        margin-bottom: 20px;
-    }
-    
-    .search-engines-container {
-        justify-content: center;
-    }
+.related-search-terms {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-/* Dark Mode Styles */
+.related-search-term {
+    display: inline-block;
+    background-color: #e9ecef;
+    color: #212529;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.related-search-term:hover {
+    background-color: #0d6efd;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+}
+
+/* Dark mode support */
 @media (prefers-color-scheme: dark) {
     /* Website summaries and AI responses */
     .ai-response {
@@ -427,4 +400,131 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 
 .modal-backdrop {
     background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Styles for the website chat */
+#website-chat-messages {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    margin-bottom: 15px;
+}
+
+.ai-message, .user-message {
+    margin-bottom: 12px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    max-width: 85%;
+    word-wrap: break-word;
+}
+
+.ai-message {
+    background-color: #e7f3ff;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+    margin-right: auto;
+}
+
+.user-message {
+    background-color: #f0f0f0;
+    border-bottom-right-radius: 4px;
+    align-self: flex-end;
+    margin-left: auto;
+    text-align: right;
+}
+
+.ai-message p, .user-message p {
+    margin-bottom: 0;
+}
+
+.ai-message-loading {
+    display: flex;
+    align-items: center;
+    color: #555;
+    margin-bottom: 12px;
+}
+
+.ai-message.error {
+    background-color: #fff0f0;
+    color: #d00;
+}
+
+.result-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Styles for content preview panel in website chat */
+.content-preview-panel {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-preview-box {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 400px;
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.content-preview-box pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    font-size: 0.85rem;
+    font-family: monospace;
+}
+
+/* Verbesserte Darstellung für das Chat-Modal */
+#website-chat-modal .modal-body {
+    padding: 20px;
+}
+
+#website-chat-modal .modal-content {
+    border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+    .content-preview-panel {
+        margin-bottom: 20px;
+        max-height: 200px;
+    }
+    
+    .content-preview-box {
+        max-height: 150px;
+    }
+}
+
+/* Style for the AI chat icon */
+.ai-chat-icon {
+    margin-left: 8px;
+    color: #6c757d;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+    display: inline-flex;
+}
+
+.ai-chat-icon:hover {
+    opacity: 1;
+    color: #0d6efd;
+    transform: scale(1.1);
+}
+
+.ai-chat-icon svg {
+    width: 14px;
+    height: 14px;
 }

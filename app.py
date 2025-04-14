@@ -7,7 +7,8 @@ import re  # Import für reguläre Ausdrücke
 import wikipedia  # Import Wikipedia library for knowledge panel
 from urllib.parse import urlparse, urlunparse  # Import für URL-Parsing
 import idna  # Für die Verarbeitung von internationalisierten Domainnamen
-from flask import Flask, request, render_template, jsonify, redirect, url_for, render_template_string
+from bs4 import BeautifulSoup  # Für besseres HTML-Parsing und Extraktion von <p>-Tags
+from flask import Flask, request, render_template, jsonify, redirect, url_for, render_template_string, session
 from pymongo import MongoClient, TEXT
 import nltk
 from nltk.corpus import stopwords
@@ -107,6 +108,7 @@ def generate_ai_response(query):
 
 app = Flask(__name__)
 app.config['DEBUG'] = os.getenv('FLASK_DEBUG', 'true').lower() == 'true'
+app.secret_key = os.environ.get('SECRET_KEY', 'defaultsecretkey_change_this_in_production')  # Sitzungsschlüssel hinzufügen
 
 # Download all necessary NLTK resources
 nltk.download('punkt')
@@ -410,6 +412,9 @@ def search():
     # Get knowledge panel information for the original query
     if original_query:
         knowledge_panel = get_knowledge_panel(original_query, selected_lang)
+        
+        # Generate related search terms if we have an original query
+        related_search_terms = generate_related_search_terms(original_query)
     
     try:
         dbs = get_all_db_connections()
@@ -614,8 +619,12 @@ def search():
     if original_query and original_query != "#all":
         # Create a unique identifier for this query that can be used to fetch the response later
         import hashlib
+        # Generate a hash of the query to use as an identifier
         query_hash = hashlib.md5(original_query.encode()).hexdigest()
-        ai_response_url = url_for('get_ai_response', query=original_query, hash=query_hash)
+        # Create the URL for fetching the AI response
+        ai_response_url = f"/get_ai_response?query={original_query}&hash={query_hash}"
+    # Default empty list for related search terms
+    related_search_terms = [] if 'related_search_terms' not in locals() else related_search_terms
     
     return render_template('search.html', 
                           results=results, 
@@ -629,7 +638,8 @@ def search():
                           categories=categories, 
                           lang=selected_lang,
                           ai_response_url=ai_response_url,  # Pass URL to fetch AI response instead of the response itself
-                          knowledge_panel=knowledge_panel)  # Pass knowledge panel data to template
+                          knowledge_panel=knowledge_panel,  # Pass knowledge panel data to template
+                          related_search_terms=related_search_terms)  # Pass related search terms for display
 
 # Neue Route zum Abruf der in der Datenbank vorhandenen distinct types
 @app.route('/types', methods=['GET'])
@@ -999,118 +1009,391 @@ def get_ai_response():
             'ai_response_html': '<div class="alert alert-danger mb-4">Error generating AI response. Please try again.</div>'
         })
 
-# Endpoint for generating webpage summaries
-@app.route('/get_page_summary', methods=['GET'])
-def get_page_summary():
-    from bs4 import BeautifulSoup
-    import re
-    
-    url = request.args.get('url', '')
+# Function to fetch website content
+@app.route('/fetch-website-content', methods=['POST'])
+def fetch_website_content():
+    data = request.get_json()
+    url = data.get('url')
     
     if not url:
-        return jsonify({'error': 'Missing URL parameter'}), 400
+        return jsonify({'success': False, 'error': 'URL nicht angegeben'})
     
     try:
-        # Try to fetch content from the URL with more realistic browser headers
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Referer': 'https://www.google.com/',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'cross-site',
-            'Cache-Control': 'max-age=0',
+        # Fetch website content without saving to database
+        website_content = fetch_and_extract_content(url)
+        
+        # Store content in session for later use
+        if 'website_contents' not in session:
+            session['website_contents'] = {}
+        
+        session['website_contents'][url] = {
+            'content': website_content,
+            'timestamp': time.time()
         }
         
-        response = requests.get(url, headers=headers, timeout=8)
-        response.raise_for_status()  # Raise an exception for 4XX/5XX responses
-        
-        # Parse HTML content
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # Remove script and style elements
-        for script in soup(["script", "style"]):
-            script.extract()
-            
-        # Get page title
-        title = soup.title.string if soup.title else "Keine Überschrift"
-        
-        # Extract main content (focusing on paragraphs, headings, and lists)
-        text_elements = soup.find_all(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'])
-        
-        # Get text from each element, remove extra whitespace
-        content_text = []
-        for element in text_elements:
-            text = element.get_text().strip()
-            if text and len(text) > 15:  # Filter out very short fragments
-                content_text.append(text)
-        
-        # Limit the amount of text we process (first 5000 chars should be enough for a summary)
-        main_content = " ".join(content_text)[:5000]
-        
-        # Create a clear prompt using the actual page content
-        prompt = f"""
-        Erstelle eine kurze Zusammenfassung der folgenden Webseite in maximal 100 Wörtern. Wichtig: Schreibe NUR die Zusammenfassung selbst, ohne IRGENDEINE Einleitung wie 'Hier ist eine Zusammenfassung' oder 'Diese Webseite...' oder 'Gerne, hier ist...' oder Ähnliches.
-        
-        Titel: {title}
-        URL: {url}
-        Inhalt: {main_content}
-        
-        Antworten Sie auf {request.args.get('lang')}. Falls der Inhalt zu kurz oder nicht informativ ist, fassen Sie zusammen, was Sie sehen können.
-        Beginne sofort mit dem Inhalt der Zusammenfassung. Verzichte auf jegliche Meta-Referenzen zur Aufgabe selbst.
-        """
-        
-        # Generate summary using Gemini AI with the extracted content
-        summary, sources = generate_ai_response(prompt)
-        
-        # Check if we got a "not enough information" type response
-        if re.search(r"(I don't have enough information|I'm a large language model|don't have access)", summary, re.IGNORECASE):
-            # Try a fallback approach with just the URL and a more specific instruction
-            fallback_prompt = f"""
-            Du erhältst eine URL: {url}
-            
-            Bitte analysiere den URL-Pfad und die Domain, um eine kurze Zusammenfassung zu erstellen, worum es auf dieser Webseite gehen könnte.
-            Verwende dein Wissen über verschiedene Domains und Website-Strukturen.
-            Gib an, dass dies eine Vermutung basierend auf der URL-Struktur ist, nicht auf dem tatsächlichen Inhalt.
-            Antworten Sie auf Deutsch in maximal 2-3 Sätzen. Du kannst die Antwort im Markdown-Format gestalten.
-            """
-            
-            summary, sources = generate_ai_response(fallback_prompt)
-            
-            # Add a disclaimer that this is URL-based only
-            summary = f"Basierend auf der URL: {summary}"
-        
-        # Ergänze Anweisungen für Markdown-Formatierung
-        prompt_addendum = f"""
-        Formatiere die obige Zusammenfassung in Markdown. Stelle sicher, dass wichtige Begriffe **fett** hervorgehoben sind.
-        Die Zusammenfassung sollte prägnant, informativ und gut formatiert sein.
-        """
-        
-        # Diese Zeile auskommentiert, um doppelte API-Anfragen zu vermeiden
-        # summary_markdown, _ = generate_ai_response(f"{summary}\n\n{prompt_addendum}")
-        # summary = summary_markdown if not re.search(r"(I don't have enough information|I'm a large language model)", summary_markdown, re.IGNORECASE) else summary
-            
+        # Return the extracted content to display in the UI
         return jsonify({
-            'success': True,
-            'summary': summary,
-            'sources': sources
-        })
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error fetching URL {url}: {e}")
-        return jsonify({
-            'success': False,
-            'error': 'Die Webseite konnte nicht geladen werden.'
+            'success': True, 
+            'extracted_content': website_content[:10000]  # Limit to first 10000 chars for UI display
         })
     except Exception as e:
-        logging.error(f"Error generating summary for {url}: {e}")
+        logging.error(f"Error fetching website content: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+# Function to chat with AI about website content
+@app.route('/chat-with-website', methods=['POST'])
+def chat_with_website():
+    data = request.get_json()
+    url = data.get('url')
+    user_message = data.get('message')
+    
+    if not url or not user_message:
+        return jsonify({'success': False, 'error': 'URL oder Nachricht nicht angegeben'})
+    
+    try:
+        # Check if content is in session, otherwise fetch it
+        website_content = None
+        if 'website_contents' in session and url in session['website_contents']:
+            stored_data = session['website_contents'][url]
+            # Use cached content if it's less than 1 hour old
+            if time.time() - stored_data.get('timestamp', 0) < 3600:
+                website_content = stored_data.get('content', '')
+        
+        # If content is not in session or too old, fetch it again
+        if not website_content:
+            website_content = fetch_and_extract_content(url)
+        
+        # Generate AI response based on website content and user message
+        ai_response = chat_with_ai_about_website(website_content, user_message, url)
+        
+        return jsonify({
+            'success': True,
+            'response': ai_response
+        })
+    except Exception as e:
+        logging.error(f"Error chatting with AI: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)})
+
+# Helper function to fetch and extract content from a website
+def fetch_and_extract_content(url):
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # Use BeautifulSoup to extract content from <p> tags
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extract text from all paragraph tags
+        paragraphs = soup.find_all('p')
+        
+        # If no paragraphs found, use basic extraction as fallback
+        if not paragraphs:
+            # Basic HTML content extraction as fallback
+            content = response.text
+            content = re.sub(r'<[^>]+>', ' ', content)
+            content = re.sub(r'\s+', ' ', content).strip()
+        else:
+            # Extract and join text from all paragraph tags
+            p_contents = [p.get_text().strip() for p in paragraphs]
+            content = "\n\n".join(p_contents)
+            
+        # Remove extra whitespace
+        content = re.sub(r'\s{3,}', '\n\n', content).strip()
+        
+        # Truncate if too large
+        max_length = 50000  # Approximate token limit for AI context
+        if len(content) > max_length:
+            content = content[:max_length] + "... [Content truncated due to length]"
+        
+        return content
+    except Exception as e:
+        logging.error(f"Error fetching content from {url}: {str(e)}")
+        raise Exception(f"Fehler beim Abrufen des Website-Inhalts: {str(e)}")
+
+# Helper function to generate an AI response about the website content
+def chat_with_ai_about_website(website_content, user_message, url):
+    try:
+        # Create a client with API key
+        client = genai.Client(
+            api_key=os.environ.get("GEMINI_API_KEY", os.environ.get("GOOGLE_GENAI_API_KEY"))
+        )
+        
+        model = "gemini-2.0-flash"  # Using a more capable model for content analysis
+        
+        # Parse the domain for context
+        domain = urlparse(url).netloc
+        
+        # Create a prompt that provides the website content and sets context
+        system_prompt = f"""Sie sind ein hilfreicher KI-Assistent, der Fragen über den Inhalt einer Website beantwortet.
+        
+        Die Frage des Benutzers bezieht sich auf den Inhalt der Website: {domain}
+        
+        Bitte beantworten Sie die Frage basierend auf diesen Website-Inhalten. Wenn die Antwort nicht in den Website-Inhalten zu finden ist, sagen Sie ehrlich, dass Sie die Information dort nicht finden können.
+        
+        Website-Inhalte:
+        {website_content[:50000]}
+        """
+        
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=system_prompt),
+                ],
+            ),
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=user_message),
+                ],
+            ),
+        ]
+        
+        generate_content_config = types.GenerateContentConfig(
+            response_mime_type="text/plain",
+            system_instruction=system_prompt
+        )
+        
+        response = client.models.generate_content(
+            model=model,
+            contents=[
+                types.Content(
+                    role="user",
+                    parts=[
+                        types.Part.from_text(text=user_message),
+                    ],
+                ),
+            ],
+            config=generate_content_config,
+        )
+        
+        # Extract and return the text response
+        ai_response = response.text
+        
+        return ai_response
+    except Exception as e:
+        logging.error(f"Error generating AI response for website content: {str(e)}")
+        raise Exception(f"Fehler bei der KI-Antwort: {str(e)}")
+
+# Function to generate related search terms using AI or fallback to predefined suggestions
+def generate_related_search_terms(query):
+    """
+    Generates related search terms for a given query using the Gemini AI.
+    Falls back to rule-based suggestions if the API key is missing.
+    Returns a list of related search terms.
+    """
+    if not query or query == "#all":
+        return []
+    
+    # Check if Gemini API key is available
+    api_key = os.environ.get("GEMINI_API_KEY", os.environ.get("GOOGLE_GENAI_API_KEY"))
+    if not api_key:
+        # Fallback to rule-based related terms when API key is missing
+        return generate_fallback_search_terms(query)
+    
+    try:
+        # Create a client with API key
+        client = genai.Client(api_key=api_key)
+        
+        model = "gemini-2.0-flash"  # Using a faster model for quick responses
+        
+        # Create a prompt that asks for related search terms
+        prompt = f"""Based on the search query "{query}", provide exactly 6 related search terms that users might be interested in.
+        These should be highly relevant to the original query but add useful variations or specifications.
+        Format your response as a simple list of terms only, one per line, with no explanations or numbering.
+        Do not repeat the exact original query in your suggestions."""
+        
+        contents = [
+            types.Content(
+                role="user",
+                parts=[
+                    types.Part.from_text(text=prompt),
+                ],
+            ),
+        ]
+        
+        generate_content_config = types.GenerateContentConfig(
+            response_mime_type="text/plain",
+        )
+        
+        # Generate content using the model
+        response = client.models.generate_content(
+            model=model,
+            contents=contents,
+            config=generate_content_config,
+        )
+        
+        # Parse the response into a list of search terms
+        related_terms = []
+        if response.text:
+            # Split by newlines and clean up
+            related_terms = [term.strip() for term in response.text.split('\n') if term.strip()]
+            # Limit to 6 terms
+            related_terms = related_terms[:6]
+            
+        return related_terms
+    except Exception as e:
+        logging.error(f"Error generating related search terms: {e}")
+        return generate_fallback_search_terms(query)
+
+# Function to generate fallback search term suggestions without requiring API access
+def generate_fallback_search_terms(query):
+    """
+    Generates related search terms using simple pattern matching when AI API is not available.
+    """
+    query = query.lower().strip()
+    
+    # Common suffixes to add to search queries
+    common_suffixes = [
+        "installation", "tutorial", "guide", "download", "alternatives", "vs", 
+        "how to use", "setup", "configuration", "examples", "pricing"
+    ]
+    
+    # Common prefixes to add to search queries
+    common_prefixes = [
+        "best", "how to", "what is", "why use", "compare", "install"
+    ]
+    
+    results = []
+    
+    # Add some suffixes
+    for suffix in common_suffixes[:3]:
+        if f"{query} {suffix}" != query:
+            results.append(f"{query} {suffix}")
+    
+    # Add some prefixes
+    for prefix in common_prefixes[:3]:
+        if f"{prefix} {query}" != query:
+            results.append(f"{prefix} {query}")
+    
+    # If we don't have enough suggestions, add more generic ones
+    if len(results) < 6:
+        if "open source" not in query and len(results) < 6:
+            results.append(f"{query} open source")
+        if "alternative" not in query and len(results) < 6:
+            results.append(f"{query} alternatives")
+        if "review" not in query and len(results) < 6:
+            results.append(f"{query} review")
+    
+    # Return up to 6 suggestions
+    return results[:6]
+
+@app.route('/get_page_summary', methods=['GET'])
+def get_page_summary():
+    """
+    Fetches and summarizes the content of a webpage.
+    Returns a JSON response with summary and metadata.
+    """
+    url = request.args.get('url')
+    if not url:
+        return jsonify({'error': 'URL parameter is required'}), 400
+
+    try:
+        # Fetch the webpage content
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # Extract content using BeautifulSoup
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Remove script and style elements
+        for script_or_style in soup(['script', 'style', 'meta', 'link', 'header', 'footer', 'nav']):
+            script_or_style.decompose()
+        
+        # Get the page title
+        title = soup.title.string if soup.title else "No title found"
+        
+        # Extract text from paragraphs, prioritizing main content
+        paragraphs = []
+        
+        # Try to find main content area (common containers for main content)
+        main_content = soup.find('main') or soup.find('article') or soup.find(id='content') or soup.find(class_='content')
+        
+        if main_content:
+            paragraphs = [p.get_text().strip() for p in main_content.find_all('p') if p.get_text().strip()]
+        
+        # If no paragraphs found in main content, look in the whole document
+        if not paragraphs:
+            paragraphs = [p.get_text().strip() for p in soup.find_all('p') if p.get_text().strip()]
+        
+        # Limit to first few paragraphs for summary
+        content = " ".join(paragraphs[:5])
+        
+        # Ensure content isn't too long
+        if len(content) > 1000:
+            content = content[:997] + "..."
+        
+        # If content is still short, add more text from headers
+        if len(content) < 200:
+            headers_text = [h.get_text().strip() for h in soup.find_all(['h1', 'h2', 'h3']) if h.get_text().strip()]
+            content = " ".join(headers_text + [content])
+        
+        # If we have a Gemini API key, generate a summary
+        api_key = os.environ.get("GEMINI_API_KEY", os.environ.get("GOOGLE_GENAI_API_KEY"))
+        summary = ""
+        
+        if api_key and content:
+            try:
+                # Create a client with API key
+                client = genai.Client(api_key=api_key)
+                
+                # Create a prompt for summarizing
+                prompt = f"Summarize this webpage content in 2-3 sentences: {content}"
+                
+                contents = [
+                    types.Content(
+                        role="user",
+                        parts=[
+                            types.Part.from_text(text=prompt),
+                        ],
+                    ),
+                ]
+                
+                generate_content_config = types.GenerateContentConfig(
+                    response_mime_type="text/plain",
+                )
+                
+                # Generate content using the model
+                response = client.models.generate_content(
+                    model="gemini-2.0-flash",
+                    contents=contents,
+                    config=generate_content_config,
+                )
+                
+                summary = response.text
+            except Exception as e:
+                logging.error(f"Error generating AI summary: {e}")
+                summary = ""
+        
+        # If AI summary failed or no API key, use the first paragraph as summary
+        if not summary and paragraphs:
+            summary = paragraphs[0]
+            if len(summary) > 200:
+                summary = summary[:197] + "..."
+        
+        # Get favicon if available
+        favicon_url = get_favicon_url(url)
+        
+        return jsonify({
+            'success': True,
+            'title': title,
+            'summary': summary or "No summary available.",
+            'favicon': favicon_url,
+            'url': url
+        })
+    
+    except Exception as e:
+        logging.error(f"Error fetching page summary for {url}: {str(e)}")
         return jsonify({
             'success': False,
-            'error': 'Zusammenfassung konnte nicht erstellt werden.'
-        })
+            'error': str(e)
+        }), 500
 
 if __name__ == '__main__':
     app.run(port=5560)
