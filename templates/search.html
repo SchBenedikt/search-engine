@@ -11,6 +11,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js für Krypto-Diagramme -->
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     
     <!-- Instrument Serif font for headers -->
@@ -355,47 +356,11 @@
 
                     </div>
                     
-                    <!-- Knowledge panel column - only show if knowledge panel data exists -->
-                    {% if knowledge_panel %}
-                    <div class="knowledge-panel-column">
-                        <div class="knowledge-panel">
-                            <h3>{{ knowledge_panel.title }}</h3>
-                            
-                            {% if knowledge_panel.image_url %}
-                            <img src="{{ knowledge_panel.image_url }}" alt="{{ knowledge_panel.title }}" class="img-fluid">
-                            {% endif %}
-                            
-                            <p>{{ knowledge_panel.summary }}</p>
-                            
-                            {% if request.args.get('lang', '').startswith('de') %}
-                                {% set wiki_lang = 'de' %}
-                                {% set wiki_url = 'https://de.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
-                                <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Mehr auf Wikipedia lesen</a>
-                                <span class="source">Quelle: Wikipedia</span>
-                            {% elif request.args.get('lang', '').startswith('fr') %}
-                                {% set wiki_lang = 'fr' %}
-                                {% set wiki_url = 'https://fr.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
-                                <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Lire plus sur Wikipédia</a>
-                                <span class="source">Source: Wikipédia</span>
-                            {% elif request.args.get('lang', '').startswith('es') %}
-                                {% set wiki_lang = 'es' %}
-                                {% set wiki_url = 'https://es.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
-                                <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Leer más en Wikipedia</a>
-                                <span class="source">Fuente: Wikipedia</span>
-                            {% elif request.args.get('lang', '').startswith('it') %}
-                                {% set wiki_lang = 'it' %}
-                                {% set wiki_url = 'https://it.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
-                                <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Ulteriori informazioni su Wikipedia</a>
-                                <span class="source">Fonte: Wikipedia</span>
-                            {% else %}
-                                <a href="{{ knowledge_panel.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Read more on Wikipedia</a>
-                                <span class="source">Source: Wikipedia</span>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Related Search Terms Panel - show below the knowledge panel -->
+                    <!-- Right sidebar with knowledge panels -->
+                    <div class="knowledge-panels-sidebar">
+                        <!-- Related Search Terms Panel - placed at the top -->
                         {% if related_search_terms %}
-                        <div class="related-search-panel mt-3">
+                        <div class="related-search-panel mb-3">
                             <h5 class="mb-3">Related Searches</h5>
                             <div class="related-search-terms">
                                 {% for term in related_search_terms %}
@@ -406,8 +371,309 @@
                             </div>
                         </div>
                         {% endif %}
+
+                        <!-- Container for knowledge panels with flexible layout -->
+                        <div class="knowledge-panels-container">
+                            <!-- Wikipedia panel -->
+                            {% if knowledge_panel %}
+                            <div class="knowledge-panel-column">
+                                <div class="knowledge-panel wikipedia-panel">
+                                    <h3>{{ knowledge_panel.title }}</h3>
+                                    
+                                    {% if knowledge_panel.image_url %}
+                                    <img src="{{ knowledge_panel.image_url }}" alt="{{ knowledge_panel.title }}" class="img-fluid">
+                                    {% endif %}
+                                    
+                                    <p>{{ knowledge_panel.summary }}</p>
+                                    
+                                    {% if request.args.get('lang', '').startswith('de') %}
+                                        {% set wiki_lang = 'de' %}
+                                        {% set wiki_url = 'https://de.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
+                                        <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Mehr auf Wikipedia lesen</a>
+                                        <span class="source">Quelle: Wikipedia</span>
+                                    {% elif request.args.get('lang', '').startswith('fr') %}
+                                        {% set wiki_lang = 'fr' %}
+                                        {% set wiki_url = 'https://fr.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
+                                        <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Lire plus sur Wikipédia</a>
+                                        <span class="source">Source: Wikipédia</span>
+                                    {% elif request.args.get('lang', '').startswith('es') %}
+                                        {% set wiki_lang = 'es' %}
+                                        {% set wiki_url = 'https://es.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
+                                        <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Leer más en Wikipedia</a>
+                                        <span class="source">Fuente: Wikipedia</span>
+                                    {% elif request.args.get('lang', '').startswith('it') %}
+                                        {% set wiki_lang = 'it' %}
+                                        {% set wiki_url = 'https://it.wikipedia.org/wiki/' + knowledge_panel.title.replace(' ', '_') %}
+                                        <a href="{{ wiki_url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Ulteriori informazioni su Wikipedia</a>
+                                        <span class="source">Fonte: Wikipedia</span>
+                                    {% else %}
+                                        <a href="{{ knowledge_panel.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">Read more on Wikipedia</a>
+                                        <span class="source">Source: Wikipedia</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- GitHub panel -->
+                            {% if github_panel %}
+                            <div class="knowledge-panel-column">
+                                <div class="knowledge-panel github-panel">
+                                    <div class="d-flex align-items-center mb-3">
+                                        {% if github_panel.avatar_url %}
+                                        <img src="{{ github_panel.avatar_url }}" alt="{{ github_panel.name }}" class="github-avatar me-3" style="width:60px;height:60px;border-radius:4px;">
+                                        {% endif %}
+                                        <div>
+                                            <h3 class="mb-0">{{ github_panel.name }}</h3>
+                                            {% if github_panel.type %}
+                                            <span class="badge bg-dark">{{ github_panel.type }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <p>{{ github_panel.description }}</p>
+                                    
+                                    <div class="github-stats mb-3">
+                                        <div class="row row-cols-1 row-cols-md-2 g-2">
+                                            <div class="col">
+                                                <div class="d-flex align-items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book me-2" viewBox="0 0 16 16">
+                                                        <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+                                                    </svg>
+                                                    <span title="Public repositories">{{ github_panel.public_repos }} repos</span>
+                                                </div>
+                                            </div>
+                                            
+                                            {% if github_panel.followers %}
+                                            <div class="col">
+                                                <div class="d-flex align-items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people me-2" viewBox="0 0 16 16">
+                                                        <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8Zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022ZM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816ZM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0Zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>
+                                                    </svg>
+                                                    <span title="Followers">{{ github_panel.followers }} followers</span>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if github_panel.location %}
+                                            <div class="col">
+                                                <div class="d-flex align-items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt me-2" viewBox="0 0 16 16">
+                                                        <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"/>
+                                                        <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                                    </svg>
+                                                    <span title="Location">{{ github_panel.location }}</span>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if github_panel.company %}
+                                            <div class="col">
+                                                <div class="d-flex align-items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-building me-2" viewBox="0 0 16 16">
+                                                        <path d="M4 2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm3.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1ZM4 5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1ZM7.5 5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1Zm2.5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1ZM4.5 8a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1Zm2.5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm3.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1Z"/>
+                                                        <path d="M2 1a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V1Zm11 0H3v14h3v-2.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5V15h3V1Z"/>
+                                                    </svg>
+                                                    <span title="Company">{{ github_panel.company }}</span>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if github_panel.email %}
+                                            <div class="col">
+                                                <div class="d-flex align-items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope me-2" viewBox="0 0 16 16">
+                                                        <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+                                                    </svg>
+                                                    <a href="mailto:{{ github_panel.email }}" title="Email">{{ github_panel.email }}</a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if github_panel.blog %}
+                                            <div class="col">
+                                                <div class="d-flex align-items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-globe me-2" viewBox="0 0 16 16">
+                                                        <path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm7.5-6.923c-.67.204-1.335.82-1.887 1.855A7.97 7.97 0 0 0 5.145 4H7.5V1.077zM4.09 4a9.267 9.267 0 0 1 .64-1.539 6.7 6.7 0 0 1 .597-.933A7.025 7.025 0 0 0 2.255 4H4.09zm-.582 3.5c.03-.877.138-1.718.312-2.5H1.674a6.958 6.958 0 0 0-.656 2.5h2.49zM4.847 5a12.5 12.5 0 0 0-.338 2.5H7.5V5H4.847zM8.5 5v2.5h2.99a12.495 12.495 0 0 0-.337-2.5H8.5zM4.51 8.5a12.5 12.5 0 0 0 .337 2.5H7.5V8.5H4.51zm3.99 0V11h2.653c.187-.765.306-1.608.338-2.5H8.5zM5.145 12c.138.386.295.744.468 1.068.552 1.035 1.218 1.65 1.887 1.855V12H5.145zm.182 2.472a6.696 6.696 0 0 1-.597-.933A9.268 9.268 0 0 1 4.09 12H2.255a7.024 7.024 0 0 0 3.072 2.472zM3.82 11a13.652 13.652 0 0 1-.312-2.5h-2.49c.062.89.291 1.733.656 2.5H3.82zm6.853 3.472A7.024 7.024 0 0 0 13.745 12H11.91a9.27 9.27 0 0 1-.64 1.539 6.688 6.688 0 0 1-.597.933zM8.5 12v2.923c.67-.204 1.335-.82 1.887-1.855.173-.324.33-.682.468-1.068H8.5zm3.68-1h2.146c.365-.767.594-1.61.656-2.5h-2.49a13.65 13.65 0 0 1-.312 2.5zm2.802-3.5a6.959 6.959 0 0 0-.656-2.5H12.18c.174.782.282 1.623.312 2.5h2.49zM11.27 2.461c.247.464.462.98.64 1.539h1.835a7.024 7.024 0 0 0-3.072-2.472c.218.284.418.598.597.933zM10.855 4a7.966 7.966 0 0 0-.468-1.068C9.835 1.897 9.17 1.282 8.5 1.077V4h2.355z"/>
+                                                    </svg>
+                                                    <a href="{{ github_panel.blog }}" target="_blank" rel="noopener" title="Website">{{ github_panel.blog }}</a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if github_panel.twitter_username %}
+                                            <div class="col">
+                                                <div class="d-flex align-items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-twitter me-2" viewBox="0 0 16 16">
+                                                        <path d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"/>
+                                                    </svg>
+                                                    <a href="https://twitter.com/{{ github_panel.twitter_username }}" target="_blank" rel="noopener" title="Twitter">@{{ github_panel.twitter_username }}</a>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    {% if github_panel.top_repos %}
+                                    <div class="github-repos">
+                                        <h5 class="mb-2">
+                                            {% if github_panel.type == 'User' %}
+                                            Recent repositories
+                                            {% else %}
+                                            Top repositories
+                                            {% endif %}
+                                        </h5>
+                                        <ul class="list-unstyled">
+                                            {% for repo in github_panel.top_repos %}
+                                            <li class="mb-2 pb-2 border-bottom">
+                                                <a href="{{ repo.url }}" target="_blank" class="fw-bold">{{ repo.name }}</a>
+                                                <div class="small text-muted">
+                                                    <span class="me-3" title="Stars"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-star me-1" viewBox="0 0 16 16">
+                                                        <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.565.565 0 0 0-.163-.505L1.71 6.745l4.052-.576a.525.525 0 0 0 .393-.288L8 2.223l1.847 3.658a.525.525 0 0 0 .393.288l4.052.575-2.906 2.77a.565.565 0 0 0-.163.506l.694 3.957-3.686-1.894a.503.503 0 0 0-.461 0z"/>
+                                                    </svg> {{ repo.stars }}</span>
+                                                    <span title="Forks"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-diagram-2 me-1" viewBox="0 0 16 16">
+                                                        <path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H11a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 5 7h2.5V6A1.5 1.5 0 0 1 6 4.5v-1zM8.5 5a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1zM3 11.5A1.5 1.5 0 0 1 4.5 10h1A1.5 1.5 0 0 1 7 11.5v1A1.5 1.5 0 0 1 5.5 14h-1A1.5 1.5 0 0 1 3 12.5v-1zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1zm4.5.5a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1A1.5 1.5 0 0 1 9 12.5v-1zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1z"/>
+                                                    </svg> {{ repo.forks }}</span>
+                                                    {% if repo.updated_at %}
+                                                    <span title="Last updated" class="ms-3"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-clock-history me-1" viewBox="0 0 16 16">
+                                                        <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
+                                                        <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM8 15A6.999 6.999 0 0 1 8 1a7 7 0 0 1 0 14z"/>
+                                                        <path d="M8 4.5a.5.5 0 0 1 .5.5v3.5H11a.5.5 0 0 1 0 1H8a.5.5 0 0 1-.5-.5V5a.5.5 0 0 1 .5-.5z"/>
+                                                    </svg>{{ repo.updated_at|replace('T', ' ')|replace('Z', '')|truncate(10, true, '') }}</span>
+                                                    {% endif %}
+                                                </div>
+                                                <p class="small mb-0">{{ repo.description }}</p>
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <a href="{{ github_panel.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">View on GitHub</a>
+                                    <span class="source">Source: GitHub</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Crypto Panel für Kryptowährungen -->
+                            {% if crypto_panel %}
+                            <div class="knowledge-panel-column">
+                                <div class="knowledge-panel crypto-panel">
+                                    <div class="d-flex align-items-center mb-3">
+                                        {% if crypto_panel.icon_url %}
+                                        <img src="{{ crypto_panel.icon_url }}" alt="{{ crypto_panel.name }}" class="crypto-icon me-3" style="width:32px;height:32px;">
+                                        {% endif %}
+                                        <div>
+                                            <h3 class="mb-0">{{ crypto_panel.name }}</h3>
+                                            <span class="badge bg-warning text-dark">{{ crypto_panel.symbol }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="crypto-data">
+                                        <div class="crypto-price">
+                                            {{ crypto_panel.currency_symbol }}{{ crypto_panel.price|round(2) }}
+                                        </div>
+                                        
+                                        {% if crypto_panel.price_change_24h is defined %}
+                                        <div class="crypto-change {% if crypto_panel.price_change_24h > 0 %}positive{% else %}negative{% endif %}">
+                                            {% if crypto_panel.price_change_24h > 0 %}+{% endif %}{{ crypto_panel.price_change_24h|round(2) }}% (24h)
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if crypto_panel.chart_data %}
+                                        <div class="crypto-chart">
+                                            <canvas id="cryptoChart"></canvas>
+                                        </div>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function() {
+                                                const ctx = document.getElementById('cryptoChart').getContext('2d');
+                                                const chartData = {{ crypto_panel.chart_data|tojson }};
+                                                
+                                                new Chart(ctx, {
+                                                    type: 'line',
+                                                    data: {
+                                                        labels: chartData.labels,
+                                                        datasets: [{
+                                                            label: '{{ crypto_panel.symbol }} Price',
+                                                            data: chartData.prices,
+                                                            borderColor: '{{ crypto_panel.color|default("#F7931A") }}',
+                                                            borderWidth: 2,
+                                                            fill: false,
+                                                            pointRadius: 0,
+                                                            tension: 0.1
+                                                        }]
+                                                    },
+                                                    options: {
+                                                        responsive: true,
+                                                        maintainAspectRatio: false,
+                                                        plugins: {
+                                                            legend: {
+                                                                display: false
+                                                            },
+                                                            tooltip: {
+                                                                mode: 'index',
+                                                                intersect: false,
+                                                                callbacks: {
+                                                                    label: function(context) {
+                                                                        return '{{ crypto_panel.currency_symbol }}' + context.parsed.y.toFixed(2);
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        scales: {
+                                                            x: {
+                                                                display: false
+                                                            },
+                                                            y: {
+                                                                display: true,
+                                                                grid: {
+                                                                    display: true,
+                                                                    drawBorder: false,
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            });
+                                        </script>
+                                        {% endif %}
+                                        
+                                        <div class="crypto-stats">
+                                            <div class="crypto-stat-item">
+                                                <div class="crypto-stat-label">Market Cap</div>
+                                                <div class="crypto-stat-value">{{ crypto_panel.currency_symbol }}{{ (crypto_panel.market_cap / 1000000000)|round(2) }}B</div>
+                                            </div>
+                                            <div class="crypto-stat-item">
+                                                <div class="crypto-stat-label">Volume (24h)</div>
+                                                <div class="crypto-stat-value">{{ crypto_panel.currency_symbol }}{{ (crypto_panel.volume_24h / 1000000000)|round(2) }}B</div>
+                                            </div>
+                                            <div class="crypto-stat-item">
+                                                <div class="crypto-stat-label">Circulating Supply</div>
+                                                <div class="crypto-stat-value">{{ (crypto_panel.circulating_supply / 1000000)|round(1) }}M</div>
+                                            </div>
+                                            <div class="crypto-stat-item">
+                                                <div class="crypto-stat-label">All-Time High</div>
+                                                <div class="crypto-stat-value">{{ crypto_panel.currency_symbol }}{{ crypto_panel.ath|round(2) }}</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="small">{{ crypto_panel.description|truncate(150) }}</p>
+                                        
+                                        <div class="crypto-links mt-3">
+                                            {% if crypto_panel.website %}
+                                            <a href="{{ crypto_panel.website }}" target="_blank" class="btn btn-sm btn-outline-primary me-2">Official Website</a>
+                                            {% endif %}
+                                            {% if crypto_panel.explorer %}
+                                            <a href="{{ crypto_panel.explorer }}" target="_blank" class="btn btn-sm btn-outline-secondary">Explorer</a>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <span class="source">Source: {{ crypto_panel.source|default('CoinGecko') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
-                    {% endif %}
                 </div>
             {% endif %}
         </div>
