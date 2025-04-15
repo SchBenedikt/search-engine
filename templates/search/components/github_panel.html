@@ -1,0 +1,46 @@
+<!-- GitHub Organization Panel Component -->
+{% if github_panel %}
+<div class="github-panel-column">
+    <div class="github-panel">
+        <div class="github-header">
+            {% if github_panel.avatar_url %}
+            <img src="{{ github_panel.avatar_url }}" alt="{{ github_panel.name }}" class="github-avatar">
+            {% endif %}
+            <h3>{{ github_panel.name }}</h3>
+        </div>
+        
+        <p>{{ github_panel.description }}</p>
+        
+        <div class="github-stats">
+            <span title="Public repositories"><i class="bi bi-book"></i> {{ github_panel.public_repos }} repos</span>
+            {% if github_panel.followers %}
+            <span title="Followers"><i class="bi bi-people"></i> {{ github_panel.followers }} followers</span>
+            {% endif %}
+            {% if github_panel.location %}
+            <span title="Location"><i class="bi bi-geo-alt"></i> {{ github_panel.location }}</span>
+            {% endif %}
+        </div>
+        
+        {% if github_panel.top_repos %}
+        <div class="github-repos">
+            <h5>Top repositories</h5>
+            <ul class="github-repo-list">
+                {% for repo in github_panel.top_repos %}
+                <li class="github-repo">
+                    <a href="{{ repo.url }}" target="_blank">{{ repo.name }}</a>
+                    <div class="github-repo-stats">
+                        <span title="Stars"><i class="bi bi-star"></i> {{ repo.stars }}</span>
+                        <span title="Forks"><i class="bi bi-diagram-2"></i> {{ repo.forks }}</span>
+                    </div>
+                    <p class="github-repo-desc">{{ repo.description }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <a href="{{ github_panel.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">View on GitHub</a>
+        <span class="source">Source: GitHub</span>
+    </div>
+</div>
+{% endif %}

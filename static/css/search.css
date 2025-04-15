@@ -220,19 +220,140 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     padding-right: 20px;
 }
 
-.knowledge-panel-column {
+.knowledge-panels-sidebar {
     flex: 0 0 30%;
     align-self: flex-start;
     position: sticky;
     top: 100px;
 }
 
+.knowledge-panels-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.knowledge-panel-column {
+    flex: 1 1 280px;
+}
+
+.wikipedia-panel {
+    border-left: 4px solid #2962FF;
+}
+
+.github-panel {
+    border-left: 4px solid #333;
+}
+
+/* Crypto Panel Styles */
+.crypto-panel {
+    border-left: 4px solid #f7931a; /* Bitcoin-Orange als Standardfarbe */
+}
+
+.crypto-price {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.crypto-change {
+    font-size: 0.95rem;
+    font-weight: 500;
+    border-radius: 4px;
+    padding: 2px 8px;
+    display: inline-block;
+}
+
+.crypto-change.positive {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+}
+
+.crypto-change.negative {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+}
+
+.crypto-chart {
+    width: 100%;
+    height: 130px;
+    margin: 15px 0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.crypto-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.crypto-stat-item {
+    padding: 8px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 4px;
+}
+
+.crypto-stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+.crypto-stat-value {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.crypto-icon {
+    border-radius: 50%;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Spezifische Farben für bestimmte Kryptowährungen */
+.crypto-panel.btc {
+    border-left-color: #f7931a;
+}
+
+.crypto-panel.eth {
+    border-left-color: #627eea;
+}
+
+.crypto-panel.ada {
+    border-left-color: #0033ad;
+}
+
+.crypto-panel.xrp {
+    border-left-color: #23292f;
+}
+
+.crypto-panel.sol {
+    border-left-color: #00FFA3;
+}
+
+.crypto-panel.doge {
+    border-left-color: #c3a634;
+}
+
+/* Responsive styles for knowledge panels */
+@media (max-width: 1200px) {
+    .knowledge-panels-container {
+        flex-direction: column;
+    }
+    
+    .knowledge-panel-column {
+        width: 100%;
+    }
+}
+
 /* Search elsewhere styles */
 .search-elsewhere-container {
     background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
 }
 
 .search-engines-container {
@@ -285,7 +406,7 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     background-color: #f8f9fa;
     border-radius: 8px;
     padding: 15px;
-    margin-top: 20px;
+    margin-top: 0;  /* Entferne den oberen Abstand */
     border: 1px solid #e9ecef;
 }
 
@@ -368,6 +489,29 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     .markdown-body code {
         background-color: #2d2d2d;
         color: #e0e0e0;
+    }
+    
+    /* Related search terms in dark mode */
+    .related-search-panel {
+        background-color: #1a1a1a;
+        border-color: #2d2d2d;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    
+    .related-search-panel h5 {
+        color: #e0e0e0;
+    }
+    
+    .related-search-term {
+        background-color: #2d2d2d;
+        color: #e0e0e0;
+        border: 1px solid #444;
+    }
+    
+    .related-search-term:hover {
+        background-color: #375a7f;
+        color: white;
+        border-color: #6c5ce7;
     }
 }
 

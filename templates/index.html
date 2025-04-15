@@ -10,6 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
     <!-- Three.js for 3D visualization -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Feature interactions and animations -->
+    <script defer src="{{ url_for('static', filename='js/feature-interactions.js') }}"></script>
     
     <!-- Instrument Serif font for headers -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,6 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/feature-badges.css') }}">
     <style>
         /* Landing page specific styles */
         .heading-font {
@@ -28,6 +31,224 @@
         
         .body-font {
             font-family: 'Instrument Sans', sans-serif;
+        }
+        
+        /* Interactive Demo Styles */
+        .interactive-demo-section {
+            background-color: #f8f9fa;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .demo-browser {
+            max-width: 1000px;
+            margin: 0 auto;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .browser-header {
+            background-color: #f1f3f4;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .browser-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        
+        .browser-address-bar {
+            font-size: 14px;
+            color: #555;
+            border-radius: 4px;
+        }
+        
+        .browser-content {
+            min-height: 400px;
+            background-color: white;
+            position: relative;
+        }
+        
+        .suggestions-container {
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .suggestions-box {
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .suggestion-item {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .suggestion-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .hover-bg-light:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .knowledge-panel {
+            background-color: #f9f9f9;
+        }
+        
+        .chat-container {
+            background-color: #f9f9f9;
+            max-height: 300px;
+        }
+        
+        .chat-message {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .ai-message {
+            justify-content: flex-start;
+        }
+        
+        .user-message {
+            justify-content: flex-end;
+        }
+        
+        .message-bubble {
+            max-width: 80%;
+            background-color: #e6f2ff;
+        }
+        
+        .user-message .message-bubble {
+            background-color: #d1e7dd;
+        }
+        
+        /* Animation classes */
+        .typing-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 10px;
+        }
+        
+        .typing-indicator span {
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            margin-right: 3px;
+            animation: typing 1s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+            margin-right: 0;
+        }
+        
+        @keyframes typing {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+        
+        /* Fade in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .animate__animated {
+            animation-duration: 1s;
+            animation-fill-mode: both;
+        }
+        
+        /* Neural Network Animation Styles */
+        .neural-network-container {
+            height: 180px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.5s ease;
+        }
+        
+        .neural-network-container.active {
+            height: 180px;
+            margin-bottom: 20px;
+        }
+        
+        #neuralNetworkCanvas {
+            cursor: pointer;
+        }
+        
+        .neural-node {
+            transition: fill 0.3s ease;
+        }
+        
+        .neural-connection {
+            transition: stroke 0.3s ease, stroke-opacity 0.3s ease;
+        }
+        
+        .neural-node.active {
+            fill: #6c5ce7 !important;
+            animation: pulse 1s infinite alternate;
+        }
+        
+        .neural-connection.active {
+            stroke: #6c5ce7 !important;
+            stroke-opacity: 1 !important;
+            animation: flow 1.5s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0% { r: 6; }
+            100% { r: 8; }
+        }
+        
+        @keyframes flow {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+        
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #375a7f, #6c5ce7);
+            pointer-events: none;
+        }
+        
+        .wave-text {
+            display: inline-block;
+            font-weight: 600;
+        }
+        
+        .wave-text span {
+            display: inline-block;
+            animation: wave-text 1s ease-in-out infinite;
+            animation-delay: calc(0.1s * var(--i));
+        }
+        
+        @keyframes wave-text {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .animate__fadeIn {
+            animation-name: fadeIn;
         }
         
         .hero-section {
@@ -428,44 +649,73 @@
         <!-- 3D Visualization Canvas -->
         <canvas id="visualization-canvas" class="position-absolute top-0 start-0 w-100 h-100" style="z-index: 0; position: fixed;"></canvas>
         
-        <div class="container text-center position-relative d-flex flex-column justify-content-center align-items-center h-100" style="z-index: 1;">
-            <h1 class="display-3 mb-4 heading-font fw-bold">Search</h1>
-            <p class="lead mb-5">A modern search engine with AI-powered results and knowledge panels</p>
+        <!-- Particles Canvas -->
+        <canvas id="particle-canvas" class="position-absolute top-0 start-0 w-100 h-100" style="z-index: 1; pointer-events: none;"></canvas>
+        
+        <div class="container text-center position-relative d-flex flex-column justify-content-center align-items-center h-100" style="z-index: 2;">
+            <div class="hero-content scroll-animate fade-in-up">
+                <h1 class="display-2 mb-4 heading-font fw-bold text-gradient">
+                    <span class="text-reveal">iSearch</span>
+                </h1>
+                <p class="lead mb-5 subtitle-text">Find information smarter with <span class="highlight-text">AI-powered</span> search and <span class="highlight-text">intelligent</span> knowledge panels.</p>
+                
+                <div class="search-box-container search-animation">
+                    <form method="POST" action="/search" class="d-flex align-items-center">
+                        <input type="search" name="query" class="form-control border-0 bg-transparent shadow-none flex-grow-1" placeholder="Search for anything...">
+                        <button type="submit" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center pulse-animation" style="width: 38px; height: 38px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="hero-badges mt-4">
+                    <span class="badge bg-light text-primary shadow-sm me-2 mb-2 badge-pill-hover">AI-Powered</span>
+                    <span class="badge bg-light text-primary shadow-sm me-2 mb-2 badge-pill-hover">Real-time Results</span>
+                    <span class="badge bg-light text-primary shadow-sm me-2 mb-2 badge-pill-hover">Smart Suggestions</span>
+                    <span class="badge bg-light text-primary shadow-sm me-2 mb-2 badge-pill-hover">Dark Mode</span>
+                </div>
+            </div>
             
-            <div class="search-box-container">
-                <form method="POST" action="/search" class="d-flex align-items-center">
-                    <input type="search" name="query" class="form-control border-0 bg-transparent shadow-none flex-grow-1" placeholder="Search for anything...">
-                    <button type="submit" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-                        </svg>
-                    </button>
-                </form>
+            <div class="scroll-indicator-container">
+                <div class="scroll-indicator">
+                    <div class="mouse">
+                        <div class="wheel"></div>
+                    </div>
+                    <div class="arrow-container">
+                        <div class="arrow"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <section class="features-section py-5">
+    <section class="features-section py-5 mt-4">
         <div class="container">
-            <div class="section-header text-center mb-5">
+            <div class="section-header text-center mb-5 scroll-animate fade-in">
                 <span class="badge rounded-pill text-bg-primary px-3 py-2 mb-3">Unique Features</span>
                 <h2 class="heading-font display-5 fw-bold mb-3">Reinventing How You Search</h2>
                 <p class="lead text-muted mx-auto" style="max-width: 700px;">Our powerful search engine combines innovative technology with user-friendly design to deliver a superior search experience.</p>
             </div>
             
             <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card feature-card h-100">
+                <div class="col-md-4 scroll-animate fade-in-up" data-delay="100">
+                    <div class="card feature-card h-100 hover-effect">
                         <div class="card-body text-center p-4 p-xl-5">
-                            <div class="feature-icon mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
-                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922.188.25.25 0 0 0 .073-.495 24 24 0 0 0-1.846-.187.25.25 0 0 0-.18.065l-.842.854-.842-1.7a.25.25 0 0 0-.217-.067zM1.5 7.5A3 3 0 0 1 4.5 4.5h7a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3h-7a3 3 0 0 1-3-3zm3-2a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1z"/>
-                                </svg>
+                            <div class="feature-icon-container mb-4">
+                                <div class="feature-icon-background"></div>
+                                <div class="feature-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                                        <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922.188.25.25 0 0 0 .073-.495 24 24 0 0 0-1.846-.187.25.25 0 0 0-.18.065l-.842.854-.842-1.7a.25.25 0 0 0-.217-.067zM1.5 7.5A3 3 0 0 1 4.5 4.5h7a3 3 0 0 1 3 3v1a3 3 0 0 1-3 3h-7a3 3 0 0 1-3-3zm3-2a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1z"/>
+                                    </svg>
+                                </div>
                             </div>
                             <h3 class="heading-font h4 mb-3">AI-Powered Answers</h3>
                             <p class="card-text">Get instant AI-generated responses to your questions, complete with verified sources and comprehensive details.</p>
+                            <div class="feature-tag">Real-time analysis</div>
                             <div class="mt-4">
-                                <a href="#" class="btn btn-sm btn-outline-primary rounded-pill">Learn more</a>
+                                <a href="#" class="btn btn-sm btn-outline-primary rounded-pill btn-hover-effect">Learn more</a>
                             </div>
                         </div>
                     </div>
@@ -590,16 +840,438 @@
         </div>
     </section>
 
+    <section class="features-showcase-section py-5">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <span class="badge rounded-pill text-bg-primary px-3 py-2 mb-3">Interactive Features</span>
+                <h2 class="heading-font display-5 fw-bold mb-3">Discover How Our Search Works</h2>
+                <p class="lead text-muted mx-auto" style="max-width: 700px;">Explore the innovative technology behind our search engine through these interactive visualizations.</p>
+            </div>
+            
+            <!-- Feature showcase tabs -->
+            <ul class="nav nav-pills mb-4 justify-content-center" id="featuresTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active px-4 py-2 me-2" id="ai-tab" data-bs-toggle="pill" data-bs-target="#ai-panel" type="button" role="tab">AI Technology</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link px-4 py-2 me-2" id="knowledge-tab" data-bs-toggle="pill" data-bs-target="#knowledge-panel" type="button" role="tab">Knowledge Panels</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link px-4 py-2 me-2" id="chat-tab" data-bs-toggle="pill" data-bs-target="#chat-panel" type="button" role="tab">Chat Features</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link px-4 py-2" id="design-tab" data-bs-toggle="pill" data-bs-target="#design-panel" type="button" role="tab">Smart Design</button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="featuresTabContent">
+                <!-- AI Technology Panel -->
+                <div class="tab-pane fade show active" id="ai-panel" role="tabpanel" aria-labelledby="ai-tab">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6 mb-4 mb-lg-0">
+                            <div class="feature-animation-container bg-light rounded-4 p-3 position-relative overflow-hidden" style="height: 380px;">
+                                <!-- AI Neural Network Animation Canvas -->
+                                <canvas id="aiNetworkCanvas" class="w-100 h-100"></canvas>
+                                <div class="position-absolute top-0 start-0 m-3 bg-white rounded-3 shadow-sm p-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="animation-indicator me-2 bg-primary rounded-circle" style="width: 10px; height: 10px;"></div>
+                                        <span class="small text-muted">Neural Network Processing</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <h3 class="heading-font mb-4">Advanced AI Technology</h3>
+                            <p>Our search engine leverages state-of-the-art artificial intelligence to understand the context and intent behind your queries. This isn't just keyword matching—it's true language understanding.</p>
+                            
+                            <div class="feature-timeline mt-4">
+                                <div class="timeline-item d-flex mb-3">
+                                    <div class="timeline-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; flex-shrink: 0;">1</div>
+                                    <div class="timeline-content ms-3">
+                                        <h5 class="h6 mb-1">Query Understanding</h5>
+                                        <p class="text-muted small mb-0">Our AI analyzes your search query through multiple neural networks to identify key concepts, relationships, and intent.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item d-flex mb-3">
+                                    <div class="timeline-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; flex-shrink: 0;">2</div>
+                                    <div class="timeline-content ms-3">
+                                        <h5 class="h6 mb-1">Semantic Matching</h5>
+                                        <p class="text-muted small mb-0">Using advanced embedding models, we match your query with semantically relevant content across the web.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="timeline-item d-flex">
+                                    <div class="timeline-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; flex-shrink: 0;">3</div>
+                                    <div class="timeline-content ms-3">
+                                        <h5 class="h6 mb-1">Answer Generation</h5>
+                                        <p class="text-muted small mb-0">Our AI synthesizes information from reliable sources to generate comprehensive, accurate answers to your questions.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <a href="/search" class="btn btn-primary mt-4">Try It Yourself</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Knowledge Panels Panel -->
+                <div class="tab-pane fade" id="knowledge-panel" role="tabpanel" aria-labelledby="knowledge-tab">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6 order-lg-2 mb-4 mb-lg-0">
+                            <div class="feature-animation-container bg-light rounded-4 p-3 position-relative overflow-hidden" style="height: 380px;">
+                                <!-- Knowledge Panel Animation -->
+                                <div class="knowledge-panel-demo h-100 w-100 d-flex align-items-center justify-content-center">
+                                    <div class="knowledge-panel-animation border rounded-4 bg-white shadow-sm p-4" style="width: 80%;">
+                                        <div class="mock-header mb-3 d-flex align-items-center">
+                                            <div class="mock-icon rounded bg-primary" style="width: 40px; height: 40px;"></div>
+                                            <div class="mock-title ms-3 flex-grow-1">
+                                                <div class="panel-animate-text bg-light rounded" style="height: 24px; width: 70%;"></div>
+                                                <div class="panel-animate-text bg-light rounded mt-1" style="height: 16px; width: 40%;"></div>
+                                            </div>
+                                        </div>
+                                        <div class="mock-image bg-light rounded mb-3" style="height: 120px;"></div>
+                                        <div class="mock-content">
+                                            <div class="panel-animate-text bg-light rounded mb-2" style="height: 16px;"></div>
+                                            <div class="panel-animate-text bg-light rounded mb-2" style="height: 16px; width: 90%;"></div>
+                                            <div class="panel-animate-text bg-light rounded mb-2" style="height: 16px; width: 85%;"></div>
+                                            <div class="panel-animate-text bg-light rounded mb-3" style="height: 16px; width: 60%;"></div>
+                                            <div class="d-flex flex-wrap mt-2">
+                                                <div class="panel-animate-badge bg-light rounded-pill me-2" style="height: 24px; width: 80px;"></div>
+                                                <div class="panel-animate-badge bg-light rounded-pill me-2" style="height: 24px; width: 60px;"></div>
+                                                <div class="panel-animate-badge bg-light rounded-pill" style="height: 24px; width: 70px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 order-lg-1">
+                            <h3 class="heading-font mb-4">Intelligent Knowledge Panels</h3>
+                            <p>Get instant, verified information about people, places, concepts, and more directly in your search results. Our knowledge panels consolidate key facts from trusted sources to save you time.</p>
+                            
+                            <div class="feature-list mt-4">
+                                <div class="feature-item d-flex mb-3">
+                                    <div class="feature-icon text-primary me-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L9.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 class="h6 mb-1">Entity Recognition</h5>
+                                        <p class="text-muted small mb-0">Our system identifies entities like people, places, organizations, and concepts in your search queries.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="feature-item d-flex mb-3">
+                                    <div class="feature-icon text-primary me-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-diagram-3" viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd" d="M6 3.5A1.5 1.5 0 0 1 7.5 2h1A1.5 1.5 0 0 1 10 3.5v1A1.5 1.5 0 0 1 8.5 6v1H14a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0V8h-5v.5a.5.5 0 0 1-1 0v-1A.5.5 0 0 1 2 7h5.5V6A1.5 1.5 0 0 1 6 4.5zM8.5 5a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5zM3 11.5A1.5 1.5 0 0 1 4.5 10h1A1.5 1.5 0 0 1 7 11.5v1A1.5 1.5 0 0 1 5.5 14h-1A1.5 1.5 0 0 1 3 12.5zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5zm4.5.5a1.5 1.5 0 0 1 1.5-1.5h1a1.5 1.5 0 0 1 1.5 1.5v1a1.5 1.5 0 0 1-1.5 1.5h-1A1.5 1.5 0 0 1 9 12.5zm1.5-.5a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 class="h6 mb-1">Knowledge Graph Integration</h5>
+                                        <p class="text-muted small mb-0">Drawing from a vast knowledge graph with billions of facts, we present relevant information about the entities you're searching for.</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="feature-item d-flex">
+                                    <div class="feature-icon text-primary me-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-link-45deg" viewBox="0 0 16 16">
+                                            <path d="M4.715 6.542 3.343 7.914a3 3 0 1 0 4.243 4.243l1.828-1.829A3 3 0 0 0 8.586 5.5L8 6.086a1.002 1.002 0 0 0-.154.199 2 2 0 0 1 .861 3.337L6.88 11.45a2 2 0 1 1-2.83-2.83l.793-.792a4.018 4.018 0 0 1-.128-1.287z"/>
+                                            <path d="M6.586 4.672A3 3 0 0 0 7.414 9.5l.775-.776a2 2 0 0 1-.896-3.346L9.12 3.55a2 2 0 1 1 2.83 2.83l-.793.792c.112.42.155.855.128 1.287l1.372-1.372a3 3 0 1 0-4.243-4.243z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 class="h6 mb-1">Interactive Exploration</h5>
+                                        <p class="text-muted small mb-0">Knowledge panels include related topics and interactive elements that let you explore connected concepts without starting a new search.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <a href="/search" class="btn btn-primary mt-4">Search with Knowledge</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Features Panel -->
+                <div class="tab-pane fade" id="chat-panel" role="tabpanel" aria-labelledby="chat-tab">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6 mb-4 mb-lg-0">
+                            <div class="feature-animation-container bg-light rounded-4 p-3 position-relative overflow-hidden" style="height: 380px;">
+                                <!-- Chat Animation -->
+                                <div class="chat-animation p-3 h-100">
+                                    <div class="chat-window bg-white rounded-4 shadow-sm p-3 h-100 d-flex flex-column">
+                                        <div class="chat-messages flex-grow-1 overflow-hidden mb-3">
+                                            <div class="chat-bubble ai-bubble bg-primary bg-opacity-10 text-dark rounded-3 p-3 mb-3 animate-message" style="max-width: 80%; transform-origin: top left;">
+                                                <p class="mb-0">Hello! I can help you learn more about any website or topic. What would you like to know?</p>
+                                            </div>
+                                            <div class="chat-bubble user-bubble bg-primary text-white rounded-3 p-3 mb-3 ms-auto animate-message" style="max-width: 80%; transform-origin: top right;">
+                                                <p class="mb-0">Can you explain the key points of this article?</p>
+                                            </div>
+                                            <div class="chat-bubble ai-bubble bg-primary bg-opacity-10 text-dark rounded-3 p-3 animate-message" style="max-width: 80%; transform-origin: top left;">
+                                                <p class="mb-0">Based on this article, the key points are:</p>
+                                                <ol class="mb-0 ps-3 small">
+                                                    <li>Advanced AI can now understand complex language patterns</li>
+                                                    <li>Search engines are evolving to provide direct answers</li>
+                                                    <li>Knowledge graphs help connect related concepts</li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                        <div class="chat-input-area d-flex">
+                                            <input type="text" class="form-control me-2" placeholder="Ask anything about this topic..." readonly>
+                                            <button class="btn btn-primary">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+                                                    <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <h3 class="heading-font mb-4">Interactive AI Chat</h3>
+                            <p>Our built-in AI chat assistant lets you have natural conversations about any webpage or search result. Ask questions, request summaries, or dig deeper into any topic without leaving your search results.</p>
+                            
+                            <div class="feature-cards mt-4">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <h5 class="card-title h6">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-text me-2" viewBox="0 0 16 16">
+                                                        <path d="M5.5 7a.5.5 0 0 0 0 1h5a.5.5 0 0 0 0-1zM5 9.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0 2a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+                                                        <path d="M9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4.5zm0 1v2A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1z"/>
+                                                    </svg>
+                                                    Instant Summaries
+                                                </h5>
+                                                <p class="card-text small">Ask our AI to summarize any webpage or article in seconds, highlighting key points.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <h5 class="card-title h6">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-translate me-2" viewBox="0 0 16 16">
+                                                        <path d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286zm1.634-.736L5.5 3.956h-.049l-.679 2.022H6.18z"/>
+                                                        <path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zm7.138 9.995c.193.301.402.583.63.846-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.059h.5c.412 0 .915.033 1.21.109.39-.962.93-2.107 1.29-2.759-.38-.085-.85-.124-1.3-.124h-1.59L8.5 6.5h1.549c-.403.785-.9 1.517-1.52 2.193-.375-.405-.715-.872-1.003-1.377l-.623 1.35c.402.563.839 1.066 1.337 1.499-.658.434-1.484.795-2.485 1.087l.57.863c1.125-.3 2.038-.705 2.752-1.225.47-.39.898-.896 1.28-1.49L13 8.5h-2.025c.14-.47.284-.77.523-1.42h-1.41l-.38 1.015 1.084.005c-.097.26-.214.6-.347 1.025-.31-.555-.65-1.04-1.01-1.445l-.622 1.374c.232.276.451.635.647.88Z"/>
+                                                    </svg>
+                                                    Multi-language Support
+                                                </h5>
+                                                <p class="card-text small">Chat in your preferred language and get information translated from sources across the web.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <h5 class="card-title h6">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search me-2" viewBox="0 0 16 16">
+                                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                                    </svg>
+                                                    Deep Research
+                                                </h5>
+                                                <p class="card-text small">Ask follow-up questions to explore topics in depth without starting new searches.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <h5 class="card-title h6">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-shield-check me-2" viewBox="0 0 16 16">
+                                                        <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533q.18.085.293.118a1 1 0 0 0 .101.025 1 1 0 0 0 .1-.025q.114-.034.294-.118c.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56z"/>
+                                                        <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                                                    </svg>
+                                                    Fact Checking
+                                                </h5>
+                                                <p class="card-text small">Verify information with our AI's ability to check facts across multiple reliable sources.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <a href="/search" class="btn btn-primary mt-4">Try Chat Features</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Smart Design Panel -->
+                <div class="tab-pane fade" id="design-panel" role="tabpanel" aria-labelledby="design-tab">
+                    <div class="row align-items-center">
+                        <div class="col-lg-6 order-lg-2 mb-4 mb-lg-0">
+                            <div class="feature-animation-container bg-light rounded-4 p-3 position-relative overflow-hidden" style="height: 380px;">
+                                <!-- Design Animation -->
+                                <div class="design-showcase h-100">
+                                    <div class="device-container position-relative h-100">
+                                        <!-- Desktop View -->
+                                        <div class="device-desktop position-absolute top-0 start-0 bg-white rounded-3 shadow-sm p-2" style="width: 65%; height: 60%; z-index: 10; transform-origin: top left;">
+                                            <div class="device-header bg-light rounded mb-2" style="height: 15px;"></div>
+                                            <div class="device-content d-flex flex-column">
+                                                <div class="search-header d-flex align-items-center mb-2">
+                                                    <div class="mock-search-box rounded bg-light flex-grow-1" style="height: 30px;"></div>
+                                                </div>
+                                                <div class="d-flex">
+                                                    <div class="mock-results flex-grow-1">
+                                                        <div class="result-item bg-light rounded mb-2" style="height: 20px;"></div>
+                                                        <div class="result-item bg-light rounded mb-2" style="height: 40px;"></div>
+                                                        <div class="result-item bg-light rounded" style="height: 20px;"></div>
+                                                    </div>
+                                                    <div class="mock-panel ms-2" style="width: 30%;">
+                                                        <div class="panel-item bg-light rounded" style="height: 90px;"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Tablet View -->
+                                        <div class="device-tablet position-absolute top-50 end-0 bg-white rounded-3 shadow-sm p-2" style="width: 45%; height: 50%; transform: translateY(-50%); z-index: 20;">
+                                            <div class="device-header bg-light rounded mb-2" style="height: 12px;"></div>
+                                            <div class="device-content">
+                                                <div class="search-header mb-2">
+                                                    <div class="mock-search-box rounded bg-light" style="height: 25px;"></div>
+                                                </div>
+                                                <div class="mock-results">
+                                                    <div class="result-item bg-light rounded mb-2" style="height: 15px;"></div>
+                                                    <div class="result-item bg-light rounded mb-2" style="height: 30px;"></div>
+                                                    <div class="result-item bg-light rounded" style="height: 15px;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Mobile View -->
+                                        <div class="device-mobile position-absolute bottom-0 start-50 bg-white rounded-3 shadow-sm p-2" style="width: 25%; height: 40%; transform: translateX(-50%); z-index: 30;">
+                                            <div class="device-header bg-light rounded mb-2" style="height: 8px;"></div>
+                                            <div class="device-content">
+                                                <div class="search-header mb-2">
+                                                    <div class="mock-search-box rounded bg-light" style="height: 18px;"></div>
+                                                </div>
+                                                <div class="mock-results">
+                                                    <div class="result-item bg-light rounded mb-1" style="height: 10px;"></div>
+                                                    <div class="result-item bg-light rounded mb-1" style="height: 20px;"></div>
+                                                    <div class="result-item bg-light rounded" style="height: 10px;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Animation Indicator -->
+                                        <div class="position-absolute top-0 end-0 m-3 bg-white rounded-3 shadow-sm p-2 z-index-40">
+                                            <div class="d-flex align-items-center">
+                                                <div class="animation-indicator me-2 bg-success rounded-circle" style="width: 10px; height: 10px;"></div>
+                                                <span class="small text-muted">Responsive Design</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 order-lg-1">
+                            <h3 class="heading-font mb-4">Intelligent User Experience</h3>
+                            <p>Our search engine adapts to your needs with a smart, responsive design that works seamlessly across all your devices. From light and dark mode to accessibility features, we've optimized every aspect of the user experience.</p>
+                            
+                            <div class="row mt-4 g-3">
+                                <div class="col-md-6">
+                                    <div class="feature-badge d-flex align-items-center p-3 rounded-3 bg-light">
+                                        <div class="feature-badge-icon text-primary me-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-moon-stars" viewBox="0 0 16 16">
+                                                <path d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278M4.858 1.311A7.27 7.27 0 0 0 1.025 7.71c0 4.02 3.279 7.276 7.319 7.276a7.32 7.32 0 0 0 5.205-2.162q-.506.063-1.029.063c-4.61 0-8.343-3.714-8.343-8.29 0-1.167.242-2.278.681-3.286z"/>
+                                                <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.73 1.73 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.73 1.73 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.73 1.73 0 0 0 1.097-1.097zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.16 1.16 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.16 1.16 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="h6 mb-0">Automatic Dark Mode</h5>
+                                            <p class="text-muted small mb-0">Reduces eye strain at night with smart theme switching</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="feature-badge d-flex align-items-center p-3 rounded-4 bg-light">
+                                        <div class="feature-badge-icon text-primary me-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-phone" viewBox="0 0 16 16">
+                                                <path d="M11 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h6zM5 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H5z"/>
+                                                <path d="M8 14a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="h6 mb-0">Responsive Design</h5>
+                                            <p class="text-muted small mb-0">Perfect experience on any device size</p>
+                                        </div>
+                                        <div class="feature-badge-glow"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="feature-badge d-flex align-items-center p-3 rounded-4 bg-light">
+                                        <div class="feature-badge-icon text-primary me-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-person-check" viewBox="0 0 16 16">
+                                                <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
+                                                <path d="M8.256 14a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10c.26 0 .507.009.74.025.226-.341.496-.65.804-.918C9.077 9.038 8.564 9 8 9c-5 0-6 3-6 4s1 1 1 1h5.256Z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="h6 mb-0">Accessibility Focus</h5>
+                                            <p class="text-muted small mb-0">Inclusive design for users of all abilities</p>
+                                        </div>
+                                        <div class="feature-badge-glow"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="feature-badge d-flex align-items-center p-3 rounded-4 bg-light">
+                                        <div class="feature-badge-icon text-primary me-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-speedometer2" viewBox="0 0 16 16">
+                                                <path d="M8 4a.5.5 0 0 1 .5.5V6a.5.5 0 0 1-1 0V4.5A.5.5 0 0 1 8 4M3.732 5.732a.5.5 0 0 1 .707 0l.915.914a.5.5 0 1 1-.708.708l-.914-.915a.5.5 0 0 1 0-.707zM2 10a.5.5 0 0 1 .5-.5h1.586a.5.5 0 0 1 0 1H2.5A.5.5 0 0 1 2 10m9.5 0a.5.5 0 0 1 .5-.5h1.5a.5.5 0 0 1 0 1H12a.5.5 0 0 1-.5-.5m.754-4.246a.39.39 0 0 0-.527-.02L7.547 9.31a.91.91 0 1 0 1.302 1.258l3.434-4.297a.39.39 0 0 0-.029-.518z"/>
+                                                <path fill-rule="evenodd" d="M0 10a8 8 0 1 1 15.547 2.661c-.442 1.253-1.845 1.602-2.932 1.25C11.309 13.488 9.475 13 8 13c-1.474 0-3.31.488-4.615.911-1.087.352-2.49.003-2.932-1.25A7.99 7.99 0 0 1 0 10m8-7a7 7 0 0 0-6.603 9.329c.203.575.923.876 1.68.63C4.397 12.533 6.358 12 8 12s3.604.532 4.923.96c.757.245 1.477-.056 1.68-.631A7 7 0 0 0 8 3"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h5 class="h6 mb-0">Performance Optimized</h5>
+                                            <p class="text-muted small mb-0">Lightning-fast page loads and interactions</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <a href="/search" class="btn btn-primary mt-4">Experience The Design</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="cta-section py-5">
-        <div class="container py-5 text-center">
+        <div class="container py-5 text-center position-relative">
+            <!-- Animated background elements -->
+            <div class="cta-bg-elements">
+                <div class="floating-circle circle-1"></div>
+                <div class="floating-circle circle-2"></div>
+                <div class="floating-circle circle-3"></div>
+                <div class="floating-dots"></div>
+            </div>
+            
             <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <h2 class="heading-font display-4 fw-bold text-white mb-4">Ready to Start Searching?</h2>
-                    <p class="lead text-white mb-5">Experience the difference with Search today. Fast, accurate, and designed for you.</p>
+                <div class="col-lg-8 scroll-animate fade-in-up">
+                    <div class="cta-badge mb-4">
+                        <span class="badge rounded-pill bg-white text-primary px-4 py-2">Try it for free</span>
+                    </div>
+                    <h2 class="heading-font display-4 fw-bold text-white mb-4 text-gradient-light">Ready to Experience Better Search?</h2>
+                    <p class="lead text-white mb-5">Discover how our intelligent search engine transforms the way you find information online.</p>
                     <div class="d-flex gap-3 justify-content-center flex-wrap">
-                        <a href="/search" class="btn btn-outline-light btn-lg px-5 py-3">Start Searching</a>
+                        <a href="/search" class="btn btn-glow btn-outline-light btn-lg px-5 py-3">
+                            <span class="btn-text">Start Searching</span>
+                            <span class="btn-icon ms-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                                </svg>
+                            </span>
+                        </a>
                         <a href="#" class="btn btn-light btn-lg px-5 py-3">Learn More</a>
                     </div>
+                    
+
                 </div>
             </div>
         </div>
@@ -659,14 +1331,14 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-envelope me-3 flex-shrink-0" viewBox="0 0 16 16">
                                     <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1zm13 2.383-4.708 2.825L15 11.105zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741M1 11.105l4.708-2.897L1 5.383z"/>
                                 </svg>
-                                <span>info@schachnersearch.com</span>
+                                <a href="https://github.com/SchBenedikt/search-engine" target="_blank" class="footer-link">SchBenedikt/search-engine</a>
                             </li>
                             <li class="d-flex mb-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-geo-alt me-3 flex-shrink-0" viewBox="0 0 16 16">
                                     <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A32 32 0 0 1 8 14.58a32 32 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10"/>
                                     <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4m0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6"/>
                                 </svg>
-                                <span>Munich, Germany</span>
+                                <span>Bavarian, Germany</span>
                             </li>
                             <li class="newsletter mt-4">
                                 <form class="d-flex gap-2">

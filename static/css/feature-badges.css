@@ -1,0 +1,257 @@
+/* 
+ * Enhanced Feature Badges Styling
+ * Modern, interactive design elements
+ */
+
+/* Feature Badge Styling */
+.feature-badge {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(108, 92, 231, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    z-index: 1;
+}
+
+.dark-mode .feature-badge {
+    background: rgba(30, 30, 30, 0.7);
+    border-color: rgba(108, 92, 231, 0.2);
+}
+
+.feature-badge-active {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(108, 92, 231, 0.2);
+    border-color: rgba(108, 92, 231, 0.3);
+}
+
+.feature-badge-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(108, 92, 231, 0.15) 0%, rgba(108, 92, 231, 0) 70%);
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.4s ease;
+}
+
+.feature-badge-active .feature-badge-glow {
+    opacity: 1;
+}
+
+.feature-badge-icon {
+    position: relative;
+    transition: all 0.3s ease-out;
+}
+
+.feature-icon-pulse {
+    animation: featureIconPulse 1s infinite alternate;
+}
+
+@keyframes featureIconPulse {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1.15);
+    }
+}
+
+/* Enhanced Feature Cards */
+.feature-card {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(108, 92, 231, 0.1);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+}
+
+.dark-mode .feature-card {
+    background: rgba(30, 30, 30, 0.7);
+    border-color: rgba(108, 92, 231, 0.2);
+}
+
+.card-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Feature Tags */
+.feature-tag {
+    display: inline-block;
+    padding: 5px 10px;
+    background: linear-gradient(45deg, rgba(55, 90, 127, 0.15), rgba(108, 92, 231, 0.15));
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 15px;
+    margin-right: 5px;
+    color: #375a7f;
+    border: 1px solid rgba(108, 92, 231, 0.2);
+}
+
+.dark-mode .feature-tag {
+    background: linear-gradient(45deg, rgba(55, 90, 127, 0.25), rgba(108, 92, 231, 0.25));
+    color: #9a9ce7;
+}
+
+/* Interactive Feature Section */
+.features-showcase-section {
+    position: relative;
+    overflow: hidden;
+}
+
+.features-showcase-section::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-image: 
+        radial-gradient(circle at 20% 20%, rgba(108, 92, 231, 0.05) 0%, transparent 30%),
+        radial-gradient(circle at 80% 80%, rgba(55, 90, 127, 0.05) 0%, transparent 30%);
+    pointer-events: none;
+}
+
+/* Custom Tab Styling */
+.features-showcase-section .nav-pills .nav-link {
+    border-radius: 30px;
+    padding: 8px 20px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+.features-showcase-section .nav-pills .nav-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.features-showcase-section .nav-pills .nav-link.active {
+    background: linear-gradient(45deg, #375a7f, #6c5ce7);
+    color: white;
+    box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+}
+
+.dark-mode .features-showcase-section .nav-pills .nav-link {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+}
+
+.dark-mode .features-showcase-section .nav-pills .nav-link.active {
+    background: linear-gradient(45deg, #5789b8, #8a7eeb);
+}
+
+/* Timeline Items */
+.feature-timeline .timeline-item {
+    position: relative;
+    padding-left: 20px;
+}
+
+.feature-timeline .timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    top: 30px;
+    left: 15px;
+    height: calc(100% - 10px);
+    width: 1px;
+    background: linear-gradient(to bottom, #375a7f 0%, transparent 100%);
+}
+
+/* Feature Animation Containers */
+.feature-animation-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark-mode .feature-animation-container {
+    background: rgba(30, 30, 30, 0.9);
+    border-color: rgba(50, 50, 50, 0.5);
+}
+
+.animation-indicator {
+    position: relative;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(108, 92, 231, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(108, 92, 231, 0);
+    }
+}
+
+/* Panel animations */
+.panel-animate-text {
+    position: relative;
+    overflow: hidden;
+}
+
+.panel-animate-text::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        rgba(240, 240, 240, 0) 0%, 
+        rgba(240, 240, 240, 0.6) 50%, 
+        rgba(240, 240, 240, 0) 100%);
+    transform: translateX(-100%);
+    animation: shimmer 2s infinite;
+}
+
+.dark-mode .panel-animate-text::after {
+    background: linear-gradient(90deg, 
+        rgba(50, 50, 50, 0) 0%, 
+        rgba(50, 50, 50, 0.6) 50%, 
+        rgba(50, 50, 50, 0) 100%);
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Device Animation Styling */
+.device-desktop, .device-tablet, .device-mobile {
+    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.device-container:hover .device-desktop {
+    transform: translate(-10px, -10px) scale(1.05);
+}
+
+.device-container:hover .device-tablet {
+    transform: translate(10px, -5px) scale(1.05) rotate(2deg);
+}
+
+.device-container:hover .device-mobile {
+    transform: translateY(10px) scale(1.1);
+}
