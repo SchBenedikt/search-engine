@@ -68,7 +68,7 @@ docker build -t ghcr.io/schbenedikt/search-engine:latest .
 To run the Docker container, use the following command:
 
 ```sh
-docker run -p : ghcr.io/schbenedikt/search-engine:latest
+docker run -p 5560:5560 ghcr.io/schbenedikt/search-engine:latest
 ```
 
 This will start the Flask application using Gunicorn as the WSGI server, and it will be accessible at `http://localhost:`.
