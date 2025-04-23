@@ -9,6 +9,8 @@ from services.search_service import search_databases
 from services.web_service import get_knowledge_panel, get_github_organization
 from services.ai_service import generate_related_search_terms
 from services.crypto_service import get_crypto_panel
+from services.weather_service import WeatherService
+from services.stackoverflow_service import get_stackoverflow_panel
 
 def init_main_routes(app):
     @app.route('/')
@@ -60,10 +62,16 @@ def init_main_routes(app):
             github_panel = get_github_organization(original_query)
             # Get cryptocurrency information if the query is related to crypto
             crypto_panel = get_crypto_panel(original_query)
-            # Get website recommendations for the query
-            website_recommendations = get_website_recommendations(original_query)
-            # Get AI-generated search results
-            ai_search_results = get_ai_search_results(original_query)
+            # Get Stack Overflow questions related to the query
+            stackoverflow_panel = get_stackoverflow_panel(original_query)
+            
+            # Get weather information if the query is related to weather
+            weather_service = WeatherService()
+            weather_panel = None
+            if weather_service.is_weather_query(original_query):
+                location = weather_service.extract_location(original_query)
+                if location:
+                    weather_panel = weather_service.get_weather(location)
             
             # Generate related search terms if we have an original query
             related_search_terms = generate_related_search_terms(original_query)
@@ -110,6 +118,12 @@ def init_main_routes(app):
         # Setze crypto_panel auf None, falls es nicht existiert
         if 'crypto_panel' not in locals():
             crypto_panel = None
+            
+        # Set default values for panels that might not exist
+        if 'weather_panel' not in locals():
+            weather_panel = None
+        if 'stackoverflow_panel' not in locals():
+            stackoverflow_panel = None
         
         return render_template('search.html', 
                               results=results, 
@@ -126,4 +140,6 @@ def init_main_routes(app):
                               knowledge_panel=knowledge_panel,  # Pass knowledge panel data to template
                               github_panel=github_panel if 'github_panel' in locals() else None,  # Pass GitHub organization data
                               crypto_panel=crypto_panel,  # Pass cryptocurrency data to template
+                              weather_panel=weather_panel,  # Pass weather data to template
+                              stackoverflow_panel=stackoverflow_panel,  # Pass Stack Overflow questions
                               related_search_terms=related_search_terms)  # Pass related search terms for display

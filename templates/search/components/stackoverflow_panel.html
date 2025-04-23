@@ -1,0 +1,44 @@
+<!-- Stack Overflow Panel Component -->
+{% if stackoverflow_panel %}
+<div class="knowledge-panel-column">
+    <div class="knowledge-panel stackoverflow-panel">
+        <h3>{{ stackoverflow_panel.title }}</h3>
+        
+        <div class="stackoverflow-questions">
+            {% for question in stackoverflow_panel.questions %}
+                <div class="stackoverflow-question">
+                    <a href="{{ question.link }}" target="_blank" class="question-title">{{ question.title }}</a>
+                    <div class="question-stats">
+                        <span class="score" title="Score">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-up-circle" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11.5z"/>
+                            </svg>
+                            {{ question.score }}
+                        </span>
+                        <span class="answers {% if question.is_answered %}answered{% endif %}" title="Answers">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-left-text" viewBox="0 0 16 16">
+                                <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                                <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+                            </svg>
+                            {{ question.answer_count }}
+                        </span>
+                    </div>
+                    {% if question.tags %}
+                    <div class="question-tags">
+                        {% for tag in question.tags[:3] %}
+                            <span class="tag">{{ tag }}</span>
+                        {% endfor %}
+                        {% if question.tags|length > 3 %}
+                            <span class="more-tags">+{{ question.tags|length - 3 }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        
+        <a href="https://stackoverflow.com/search?q={{ stackoverflow_panel.title|replace('Stack Overflow: ', '')|urlencode }}" target="_blank" class="btn btn-sm btn-outline-primary mt-3">More on Stack Overflow</a>
+        <span class="source">Source: Stack Overflow</span>
+    </div>
+</div>
+{% endif %}
