@@ -19,6 +19,40 @@ body {
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+}
+
+/* Autocomplete AI suggestion styles */
+.ui-autocomplete .ai-suggestion {
+    display: flex;
+    align-items: center;
+    padding: 8px 10px;
+}
+
+.ui-autocomplete .db-suggestion {
+    padding: 8px 10px;
+}
+
+.ui-autocomplete .ai-badge {
+    background-color: #6c5ce7;
+    color: white;
+    font-size: 0.7em;
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin-right: 8px;
+    display: inline-block;
+}
+    padding: 8px 10px;
+}
+
+.ui-autocomplete .ai-badge {
+    background-color: #6c5ce7;
+    color: white;
+    font-size: 0.7em;
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin-right: 8px;
+    display: inline-block;
+}
     transition: all 0.3s ease;
 }
 
@@ -210,6 +244,23 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     display: block;
 }
 
+/* Mobile tabs styling */
+.mobile-tabs-container {
+    display: none;
+    margin-bottom: 15px;
+}
+
+.mobile-info-panels {
+    display: none;
+}
+
+.desktop-only-sidebar {
+    flex: 0 0 30%;
+    align-self: flex-start;
+    position: sticky;
+    top: 100px;
+}
+
 .search-content-wrapper {
     display: flex;
     flex-wrap: wrap;
@@ -235,6 +286,50 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 
 .knowledge-panel-column {
     flex: 1 1 280px;
+}
+
+/* Media queries for mobile layout */
+@media (max-width: 768px) {
+    .search-content-wrapper {
+        flex-direction: column;
+    }
+    
+    .search-results-column {
+        flex: 1 0 100%;
+        padding-right: 0;
+        margin-bottom: 20px;
+    }
+    
+    .knowledge-panels-sidebar {
+        flex: 1 0 100%;
+        position: static;
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .knowledge-panel-column {
+        flex: 1 0 100%;
+        max-width: 100%;
+    }
+    
+    .knowledge-panel {
+        padding: 25px;
+        margin-bottom: 25px;
+    }
+    
+    .knowledge-panel h3 {
+        font-size: 1.7rem;
+        margin-bottom: 15px;
+    }
+    
+    .knowledge-panel p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    
+    .weather-panel {
+        margin-bottom: 25px;
+    }
 }
 
 .wikipedia-panel {
@@ -291,7 +386,6 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 
 .crypto-stat-item {
     padding: 8px;
-    background-color: rgba(0, 0, 0, 0.03);
     border-radius: 4px;
 }
 
@@ -512,6 +606,71 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
         background-color: #375a7f;
         color: white;
         border-color: #6c5ce7;
+    }
+
+    /* Knowledge Panel Dark Mode Styles */
+    .knowledge-panel {
+        background-color: #1a1a1a;
+        border-color: #2d2d2d;
+        color: #e0e0e0;
+    }
+
+    .knowledge-panel h3 {
+        color: #e0e0e0;
+    }
+
+    .knowledge-panel p {
+        color: #e0e0e0;
+    }
+
+    .knowledge-panel .source {
+        color: #a0a0a0;
+    }
+
+    /* Crypto Panel Dark Mode Styles */
+    .crypto-panel,
+    .crypto-highlight-panel {
+        background-color: #1a1a1a;
+        border-color: #2d2d2d;
+        color: #e0e0e0;
+    }
+    
+    .crypto-price, 
+    .price-value {
+        color: #e0e0e0;
+        font-weight: 600;
+    }
+    
+    .crypto-change.positive {
+        background-color: rgba(40, 167, 69, 0.2);
+        color: #3ee273;
+    }
+    
+    .crypto-change.negative {
+        background-color: rgba(220, 53, 69, 0.2);
+        color: #ff6b82;
+    }
+    
+    .crypto-stat-item {
+        background-color: #2d2d2d;
+    }
+    
+    .crypto-stat-label {
+        color: #a0a0a0;
+    }
+    
+    .crypto-stat-value {
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+    
+    .detail-label {
+        color: #a0a0a0;
+    }
+    
+    .detail-value {
+        color: #ffffff !important;
+        font-weight: 600;
     }
 }
 
