@@ -160,36 +160,52 @@ def search_databases(query, selected_type, selected_lang, page=1, per_page=10):
         google_items.sort(key=lambda x: x.get('score', 0), reverse=True)
         local_items.sort(key=lambda x: x.get('score', 0), reverse=True)
         
-        # 3:2 Verhältnis für Google:Lokal (mehr Google-Ergebnisse am Anfang)
-        ratio_google = 3
-        ratio_local = 2
-        google_added = 0
-        local_added = 0
+        # Verbesserte Mischlogik: Priorisiert höhere Scores, wechselt aber Quellen ab,
+        # um eine Blockbildung einer Quelle zu vermeiden, wenn die Scores sehr ähnlich sind.
         
-        # Während wir noch Ergebnisse haben
-        while google_items or local_items:
-            # Füge Google-Ergebnisse hinzu basierend auf dem Verhältnis
-            for _ in range(ratio_google):
-                if google_items:
-                    combined_results.append(google_items.pop(0))
-                    google_added += 1
-                else:
-                    break
+        # Sortiere beide Listen nach Score
+        google_items.sort(key=lambda x: x.get('score', 0), reverse=True)
+        local_items.sort(key=lambda x: x.get('score', 0), reverse=True)
+
+        google_idx, local_idx = 0, 0
+        google_len, local_len = len(google_items), len(local_items)
+
+        # Gewichtung für Google-Ergebnisse (z.B. 1.5 bedeutet, dass Google-Ergebnisse
+        # tendenziell etwas höher gewichtet werden, wenn Scores nahe beieinander liegen)
+        google_score_weight = 1.2
+
+        while google_idx < google_len or local_idx < local_len:
+            # Nächstes Google-Ergebnis und dessen Score (mit Gewichtung)
+            google_score = (google_items[google_idx].get('score', 0) * google_score_weight
+                            if google_idx < google_len else -1)
             
-            # Füge lokale Ergebnisse hinzu basierend auf dem Verhältnis
-            for _ in range(ratio_local):
-                if local_items:
-                    combined_results.append(local_items.pop(0))
-                    local_added += 1
+            # Nächstes lokales Ergebnis und dessen Score
+            local_score = (local_items[local_idx].get('score', 0)
+                           if local_idx < local_len else -1)
+
+            # Wenn beide Listen noch Elemente haben
+            if google_idx < google_len and local_idx < local_len:
+                # Bevorzuge das Ergebnis mit dem höheren gewichteten Score
+                if google_score >= local_score:
+                    combined_results.append(google_items[google_idx])
+                    google_idx += 1
                 else:
-                    break
+                    combined_results.append(local_items[local_idx])
+                    local_idx += 1
+            # Wenn nur noch Google-Ergebnisse übrig sind
+            elif google_idx < google_len:
+                combined_results.append(google_items[google_idx])
+                google_idx += 1
+            # Wenn nur noch lokale Ergebnisse übrig sind
+            elif local_idx < local_len:
+                combined_results.append(local_items[local_idx])
+                local_idx += 1
+            else:
+                # Sollte nicht passieren, aber als Absicherung
+                break
         
-        # Füge übrig gebliebene Ergebnisse hinzu
-        combined_results.extend(google_items)
-        combined_results.extend(local_items)
-        
-        logging.info(f"Google results: {google_added}, Local results: {local_added}")
-        
+        logging.info(f"Combined {len(combined_results)} results. Google items processed: {google_idx}, Local items processed: {local_idx}")
+
         # Aktualisiere die Gesamtanzahl der Ergebnisse
         total_results = len(combined_results)
         
