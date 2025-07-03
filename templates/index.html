@@ -23,6 +23,8 @@
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/feature-badges.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/enhanced-animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/points-system.css') }}">
     <style>
         /* Landing page specific styles */
         .heading-font {
@@ -662,6 +664,10 @@
                 <div class="search-box-container search-animation">
                     <form method="POST" action="/search" class="d-flex align-items-center">
                         <input type="search" name="query" class="form-control border-0 bg-transparent shadow-none flex-grow-1" placeholder="Search for anything...">
+                        <button type="button" id="voice-search-btn" class="voice-search-btn me-2" style="display: none;" title="Voice Search">
+                            <span class="voice-icon">🎤</span>
+                            <div class="voice-ripple"></div>
+                        </button>
                         <button type="submit" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center pulse-animation" style="width: 38px; height: 38px;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
@@ -1551,5 +1557,10 @@
             animate();
         }
     </script>
+    
+    <!-- Enhanced functionality scripts -->
+    <script src="{{ url_for('static', filename='js/voice-search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/enhanced-animations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/points-system.js') }}"></script>
 </body>
 </html>

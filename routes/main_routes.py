@@ -11,12 +11,20 @@ from services.ai_service import generate_related_search_terms
 from services.crypto_service import get_crypto_panel
 from services.weather_service import WeatherService
 from services.stackoverflow_service import get_stackoverflow_panel
+from services.user_service import user_service, POINT_VALUES
 
 def init_main_routes(app):
     @app.route('/')
     def index():
         """Display the modern landing page"""
-        return render_template('index.html')
+        # Get or create user and award daily login points
+        user = user_service.get_or_create_user()
+        user_service.add_points(user['user_id'], POINT_VALUES['daily_login'], 'daily_login', 'Daily visit')
+        
+        # Get user stats for display
+        user_stats = user_service.get_user_stats(user['user_id'])
+        
+        return render_template('index.html', user_stats=user_stats)
     
     @app.route('/search', methods=['GET', 'POST'])
     def search():
@@ -80,6 +88,14 @@ def init_main_routes(app):
         results, total_results, query_time, message = search_databases(
             query, selected_type, selected_lang, page, per_page)
         
+        # Award points for search
+        if original_query:
+            user = user_service.get_or_create_user()
+            user_service.add_points(user['user_id'], POINT_VALUES['search'], 'search', f'Search for: {original_query}')
+            user_stats = user_service.get_user_stats(user['user_id'])
+        else:
+            user_stats = None
+        
         # Get all available categories/types
         categories = []
         try:
@@ -142,4 +158,5 @@ def init_main_routes(app):
                               crypto_panel=crypto_panel,  # Pass cryptocurrency data to template
                               weather_panel=weather_panel,  # Pass weather data to template
                               stackoverflow_panel=stackoverflow_panel,  # Pass Stack Overflow questions
-                              related_search_terms=related_search_terms)  # Pass related search terms for display
+                              related_search_terms=related_search_terms,  # Pass related search terms for display
+                              user_stats=user_stats)  # Pass user statistics for points display

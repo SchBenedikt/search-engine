@@ -7,6 +7,7 @@ from utils.url_utils import get_favicon_url
 from utils.text_utils import preprocess_query
 from services.ai_service import generate_ai_response, chat_with_ai_about_website
 from services.web_service import fetch_and_extract_content, get_page_summary
+from services.user_service import user_service, POINT_VALUES
 
 def init_api_routes(app):
     """
@@ -114,6 +115,10 @@ def init_api_routes(app):
         if not query:
             return jsonify({'error': 'Missing query parameter'}), 400
         
+        # Award points for AI query
+        user = user_service.get_or_create_user()
+        user_service.add_points(user['user_id'], POINT_VALUES['ai_query'], 'ai_query', f'AI query: {query}')
+        
         # Generate AI response
         try:
             ai_response, sources = generate_ai_response(query)
@@ -198,6 +203,10 @@ def init_api_routes(app):
         if not url or not user_message:
             return jsonify({'success': False, 'error': 'URL oder Nachricht nicht angegeben'})
         
+        # Award points for website chat
+        user = user_service.get_or_create_user()
+        user_service.add_points(user['user_id'], POINT_VALUES['website_chat'], 'website_chat', f'Chat with website: {url}')
+        
         try:
             # Check if content is in session, otherwise fetch it
             website_content = None
@@ -250,6 +259,64 @@ def init_api_routes(app):
         
         except Exception as e:
             logging.error(f"Error fetching page summary for {url}: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+    
+    @app.route('/api/user/stats', methods=['GET'])
+    def get_user_stats():
+        """Get current user statistics"""
+        try:
+            user = user_service.get_or_create_user()
+            user_stats = user_service.get_user_stats(user['user_id'])
+            return jsonify({
+                'success': True,
+                'stats': user_stats
+            })
+        except Exception as e:
+            logging.error(f"Error getting user stats: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+    
+    @app.route('/api/user/add_points', methods=['POST'])
+    def add_user_points():
+        """Add points to user account"""
+        try:
+            data = request.get_json()
+            points = data.get('points', 0)
+            activity_type = data.get('activity_type', 'manual')
+            description = data.get('description', '')
+            
+            user = user_service.get_or_create_user()
+            new_total = user_service.add_points(user['user_id'], points, activity_type, description)
+            
+            return jsonify({
+                'success': True,
+                'new_total': new_total,
+                'points_added': points
+            })
+        except Exception as e:
+            logging.error(f"Error adding points: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': str(e)
+            }), 500
+    
+    @app.route('/api/leaderboard', methods=['GET'])
+    def get_leaderboard():
+        """Get top users leaderboard"""
+        try:
+            limit = request.args.get('limit', 10, type=int)
+            leaderboard = user_service.get_leaderboard(limit)
+            return jsonify({
+                'success': True,
+                'leaderboard': leaderboard
+            })
+        except Exception as e:
+            logging.error(f"Error getting leaderboard: {str(e)}")
             return jsonify({
                 'success': False,
                 'error': str(e)
