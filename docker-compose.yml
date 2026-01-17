@@ -3,19 +3,11 @@ version: '3.8'
 services:
   search-engine:
     image: ghcr.io/schbenedikt/search-engine:latest
-    depends_on:
-      - mongodb
     ports:
-      - "5560:5560"
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_CX=${GOOGLE_CX}
     restart: always
-
-  mongodb:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-    restart: always
-
-volumes:
-  mongo-data:
