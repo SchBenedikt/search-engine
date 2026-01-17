@@ -1,9 +1,48 @@
-.vscode/settings.json
-__pycache__/semantic_search.cpython-312.pyc
+# Next.js
+/.next/
+/out/
+/build/
+.next
+*.tsbuildinfo
+next-env.d.ts
+
+# Dependencies
+/node_modules/
+/.pnp
+.pnp.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+/venv/
+/env/
+
+# Environment
 .env
-.env
-/__pycache__
-/services/__pycache__
-/utils/__pycache__
-.env
-.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Old Flask app
+/old_flask_app/
