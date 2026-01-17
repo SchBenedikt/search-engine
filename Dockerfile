@@ -1,23 +1,47 @@
-# Use python:3.9-slim as the base image
-FROM python:3.9-slim
+# Use Node.js 20 Alpine as the base image
+FROM node:20-alpine AS base
 
-# Set the working directory in the container
+# Install dependencies only when needed
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy the application code into the Docker image
-COPY . /app
+# Copy package files
+COPY package.json package-lock.json* ./
+RUN npm ci
 
-# Install the dependencies from requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 
-# Download the 'stopwords' resource during the build process
-RUN python -m nltk.downloader stopwords
+# Set environment variables for build
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Download the 'punkt' resource during the build process
-RUN python -m nltk.downloader punkt
+# Build the Next.js application
+RUN npm run build
 
-# Add a health check to ensure the MongoDB connection is available before starting the Flask application
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --spider http://localhost:5560/health || (echo "Datenbank nicht verfügbar, Anwendung nicht gestartet" && exit 1)
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
 
-# Set the entry point to run the Flask application
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5560", "app:app"]
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy necessary files
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
